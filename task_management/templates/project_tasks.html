@@ -1,0 +1,505 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+
+<body>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+
+
+  <main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>Dashboard</h1>  
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section dashboard">
+        <div class="row">
+            <!-- To Do Card -->
+            <div class="col-md-4">
+                <div class="card  info-card sales-card" data-bs-toggle="modal" data-bs-target="#commentModal" data-project-name="{{ project.projectname }}" data-project-id="{{ project.id }}">
+                    <div class="card-body">
+                        <h5 class="card-title">To Do</h5>
+                        <ul class="list-group"></ul>
+                            {% for task in todo_tasks %}
+                            <li class="list-group-item">
+                                <strong class="task-description">{{ task.description }}</strong> <br>
+                                <small class="task-datetime">Created at: {{ task.created_at }}</small>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item">No tasks to do.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- In Progress Card -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">In Progress</h5>
+                        <ul class="list-group">
+                            {% for task in in_progress_tasks %}
+                            <li class="list-group-item">
+                                <strong class="task-description">{{ task.description }}</strong> <br>
+                                <small class="task-datetime">Created at: {{ task.created_at }}</small>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item">No tasks in progress.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Done Card -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Done</h5>
+                        <ul class="list-group">
+                            {% for task in done_tasks %}
+                            <li class="list-group-item">
+                                <strong class="task-description">{{ task.description }}</strong> <br>
+                                <small class="task-datetime">Created at: {{ task.created_at }}</small>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item">No tasks done yet.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </section>
+
+  </main><!-- End #main -->
+
+
+
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+
+
+
+<!-- CREATE ISSUE MODAL START -->
+  <div class="modal fade" id="issueModals" tabindex="-1" >
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"> TODO List</h5> <br>
+  
+         
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'create_issue' project.id %}">
+          {% csrf_token %}
+
+        <div class="modal-body">
+
+          
+  
+           
+        
+          <div class="col-12">
+            <label for="yourUsername" class="form-label">Issue</label>
+            <div class="input-group has-validation">
+              <input type="text" name="issuename" class="form-control" id="yourUsername" placeholder="Enter your Issue" required>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+  
+  
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+
+      </div>
+    </div>
+  </div>
+  <!-- ISSUE End Modal Dialog Scrollable-->
+
+
+
+  <!-- large modal start -->
+
+  <div class="modal fade" id="issueModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{project}}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+
+        <form method="post" enctype="multipart/form-data" action="{% url 'create_todolist' project.id %}">
+          {% csrf_token %}
+      
+          <div class="modal-body">
+              <!-- Buttons in a Row -->
+              <div class="row g-2">
+      
+                  <!-- File Input and Attach Button -->
+                  <div class="col">
+                      <label class="btn btn-primary btn-sm w-auto" for="fileInput">
+                          Attach File
+                      </label>
+                      <input type="file" id="fileInput" name="attached_file[]" style="display: none;" multiple onchange="previewFiles()">
+
+                  </div>
+      
+                  <!-- Preview Section -->
+                  <div id="previewSection" class="mt-3" style="display: none;">
+                      <div id="filePreview" class="row">
+                          <!-- File preview will be inserted here by JS -->
+                      </div>
+                  </div>
+      
+                  <!-- Other Buttons -->
+                  <div class="col">
+                      <button class="btn btn-secondary btn-sm w-auto" type="button">Child Issue</button>
+                  </div>
+                  <div class="col">
+                      <button class="btn btn-secondary btn-sm w-auto" type="button">Link Issue</button>
+                  </div>
+                  <div class="col">
+                      <button class="btn btn-secondary btn-sm w-auto" type="button">Button 4</button>
+                  </div>
+                  <div class="col">
+                      <button class="btn btn-secondary btn-sm w-auto" type="button">Button 5</button>
+                  </div>
+              </div>
+      
+              <!-- Add Description Link -->
+              <div class="mt-3">
+                  <a href="javascript:void(0);" id="toggleDescriptionLink" class="text-muted" onclick="toggleDescription()">Add a description</a>
+              </div>
+      
+              <!-- Description Section (Hidden by default) -->
+              <div class="mt-4" id="descriptionSection" style="display: none;">
+                  <textarea id="id_description" name="description" placeholder="Enter Your Description"></textarea>
+              </div>
+      
+              <!-- Activity Buttons -->
+              <div class="d-flex align-items-center mt-5">
+                  <span class="me-2">Activity</span>
+                  <span class="me-2">Show:</span>
+                  <div class="btn-group">
+      
+                      <button type="button" id="allButton" class="btn btn-primary me-2" onclick="fetchAllData()">All</button>
+                      <button type="button" class="btn btn-outline-secondary me-2" id="commentsButton" onclick="toggleComments()">Comments</button>
+                      <button type="button" id="historyButton" class="btn btn-outline-secondary">Status</button>
+      
+                  </div>
+              </div>
+
+
+      
+              <!-- Comments Section (Hidden by default) -->
+              <div class="mt-4" id="commentsSection" style="display: none;">
+                  <textarea id="id_comments" name="comments" placeholder="Enter Your Comments"></textarea>
+              </div>
+
+
+
+              <!-- <div class="col-md-12 mt-4">
+                <select class="form-select" id="validationstatus" name="status" required style="display: none;">
+                  <option selected disabled value="">Choose project Status</option>
+                  <option value="Working">Working</option>
+                  <option value="Pending Review">Pending Review</option>
+                  <option value="OverDue">OverDue</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div> -->
+                         
+
+              <!-- Submit and Cancel Buttons -->
+              <div class="d-flex justify-content-end mt-3">
+                  <button class="btn btn-primary me-2" type="submit">Save</button>
+                  <button class="btn btn-secondary" type="button">Cancel</button>
+              </div>
+
+        
+          </div>
+      </form>
+      
+        
+
+   
+<!-- Display Items -->
+<div class="ps-3 mt-3" id="activityContainer" class="scrollable-container">
+  <!-- Dynamic content will be inserted here -->
+</div>
+      
+      <!-- <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div> -->
+        
+        </div>
+        
+      </div>
+    </div>
+  
+  
+  <!-- End Large Modal-->
+
+
+
+
+  <!-- READ MORE MODAL -->
+
+<!-- Modal -->
+<div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="descriptionModalLabel">Full Description</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <!-- Modal body will be filled dynamically -->
+              <span id="modalDescription"></span>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+
+
+<!-- Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="commentModalLabel">Comment Section for <span id="modalProjectName"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Comment Form -->
+        
+          <form id="commentForm" method="POST" action="{% url 'add_comment' %}">
+            {% csrf_token %}
+            <input type="hidden" name="project_id" id="modalProjectId"> <!-- Hidden field to store the project ID -->
+            <div class="mb-3">
+                <textarea class="form-control" name="comment" rows="3" placeholder="Type your comment here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Comment</button>
+        </form>
+        
+        
+          <hr>
+  
+          <!-- Comments Section -->
+          <div id="commentSection">
+            <h6>Comments:</h6>
+            <ul class="list-group">
+              {% for comment in project.comments.all %}
+              <li class="list-group-item">
+                <strong>{{ comment.user.username }}:</strong> {{ comment.text }} <br>
+                <small>Posted at: {{ comment.created_at }}</small>
+              </li>
+              {% empty %}
+              <li class="list-group-item">No comments yet.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+      function timeAgo(dateString) {
+          const now = new Date();
+          const past = new Date(dateString);
+          const diff = now - past; // Difference in milliseconds
+          const seconds = Math.floor(diff / 1000);
+          const minutes = Math.floor(seconds / 60);
+          const hours = Math.floor(minutes / 60);
+          const days = Math.floor(hours / 24);
+
+          if (days > 0) return days + ' day(s) ago';
+          if (hours > 0) return hours + ' hour(s) ago';
+          if (minutes > 0) return minutes + ' minute(s) ago';
+          return 'Just now';
+      }
+
+      function formatDateToLocal(dateString) {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) { // Check if date is invalid
+              return 'Invalid Date';
+          }
+          return date.toLocaleString(); // Format date to local time zone
+      }
+
+      function renderItems(items) {
+          const container = document.getElementById('activityContainer');
+          container.innerHTML = ''; // Clear existing content
+
+          // Single card to contain all comments
+          const cardHTML = `
+              <div class="card mt-2">
+                  <div class="card-body p-2 overflow-auto" id="modalcard" style="max-height: 200px;">
+                      ${items.map((item, index) => `
+                          <div>
+                              <p class="text-dark small mb-1">
+                                  <strong>Comment:</strong> ${item.comment}
+                              </p>
+                              <p class="text-muted small mb-0">
+                                  Created: ${formatDateToLocal(item.created_at)} (${timeAgo(item.created_at)})
+                              </p>
+                              ${index < items.length - 1 ? '<hr>' : ''}
+                          </div>
+                      `).join('')}
+                  </div>
+              </div>
+          `;
+          container.insertAdjacentHTML('beforeend', cardHTML);
+      }
+
+      function fetchAllData() {
+          fetch('/api/projects/all/')
+              .then(response => response.json())
+              .then(data => {
+                  renderItems(data);
+              })
+              .catch(error => {
+                  console.error('Error fetching data:', error);
+              });
+      }
+
+      fetchAllData(); // Call the function to fetch and display data
+  });
+</script>
+
+
+
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    var commentModal = document.getElementById('commentModal');
+    
+    commentModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget; // Button that triggered the modal
+        var projectName = button.getAttribute('data-project-name');
+        var projectId = button.getAttribute('data-project-id');
+        
+        var modalTitle = commentModal.querySelector('.modal-title span#modalProjectName');
+        var modalProjectIdInput = commentModal.querySelector('input#modalProjectId');
+        
+        modalTitle.textContent = projectName;
+        modalProjectIdInput.value = projectId;
+    });
+});
+
+</script>
+
+
+  <style>
+   
+  /* Ensure the dragged item looks like the original */
+.sortable-ghost {
+  opacity: 0.5;
+  background-color: #f8f9fa; /* Match the original background color */
+}
+
+/* Adjust padding/margin if needed */
+.card-body {
+  padding: 10px;
+  margin: 0; /* Ensure no extra margin is causing layout issues */
+}
+
+
+
+  .preview-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    width: 25px;
+    height: 25px;
+    font-size: 16px;
+    text-align: center;
+    line-height: 25px;
+    z-index: 1;
+  }
+
+  .preview-image {
+    max-width: 150px;
+    max-height: 150px;
+  }
+
+
+  /* Custom style for card with scrollbar */
+  #modalcard{
+            max-height: 200px; /* Adjust the height as needed */
+            overflow-y: auto; /* Vertical scrollbar */
+        }
+
+
+        
+/* Hide the date and time by default */
+.task-datetime {
+    display: none;
+}
+
+/* Show date and time when hovering over any list item in the ul */
+.list-group:hover .task-datetime {
+    display: inline;
+}
+
+
+</style>
+
+
+
+
+
+
+</body>
+
+
+{% endblock content %}

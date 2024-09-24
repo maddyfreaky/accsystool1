@@ -1,0 +1,110 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Tables / Data - Django Application</title>
+</head>
+
+<body>
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1>Home</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item">Tables</li>
+          <li class="breadcrumb-item active">Data</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Datatables</h5>
+    
+              <!-- Table with stripped rows -->
+              <table class="table datatable">
+                <thead>
+                  <tr>
+                    <th>Project Name</th>
+                    <th>Task Description</th>
+                    <th data-type="date" data-format="YYYY/DD/MM">Created at</th>
+                    <th>Comments</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for task in project1 %}
+                  
+                    <tr>
+                      <td>{{ task.projectname }}</td> <!-- Fetching project name from the related project model -->
+                      <td>{{ task.description|truncatewords:10 }}</td>
+                      <td>{{ task.created_at|date:"Y/m/d" }}</td>
+                      <td>
+                        <span class="short-desc">{{ task.comments|truncatewords:5 }}</span>
+                        <button class="btn btn-link read-more-btn" data-bs-toggle="modal" data-bs-target="#descriptionModal"
+                                data-description="{{ task.comments }}">
+                          Read More
+                        </button>
+                      </td>
+                      <td>{{ task.attached_file|default_if_none:"No file" }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="5">No tasks found.</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal for displaying full description -->
+  <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="descriptionModalLabel">Full Description</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="mb-3">
+              <label for="descriptionField" class="form-label">Full Task Description</label>
+              <textarea id="descriptionField" class="form-control" rows="5" readonly></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.read-more-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const fullDescription = this.getAttribute('data-description');
+          document.getElementById('descriptionField').textContent = fullDescription;
+        });
+      });
+    });
+  </script>
+</body>
+</html>
+
+{% endblock content %}

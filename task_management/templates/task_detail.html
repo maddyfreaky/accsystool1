@@ -1,0 +1,460 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<body>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+ 
+
+  <main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>Projects</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item">Tables</li>
+          <li class="breadcrumb-item active">Data</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">              
+           <!-- Button to toggle visibility of the card -->
+<button id="projectbtn" class="btn btn-primary mb-3">Create Task</button>
+
+<!-- Initially hidden card -->
+<div class="col-lg-12" id="projectCard" style="display: none;">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Task Creation</h5>
+   
+      <!-- <p>For custom Bootstrap form validation messages, you’ll need to add the <code>novalidate</code> boolean attribute to your <code>&lt;form&gt;</code>. This disables the browser default feedback tooltips, but still provides access to the form validation APIs in JavaScript.</p> -->
+      <!-- Custom Styled Validation -->
+
+
+      <form class="row g-3 needs-validation" method="post" action="{% url 'create_task' selected_project.id %}" novalidate>
+        <!-- Form fields -->
+         {% csrf_token %}
+        <div class="col-md-6">
+          <label for="validationCustom01" class="form-label">Task name <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="validationCustom01" name="taskname" required>
+          <!-- <div class="valid-feedback">Enter the Task name</div> -->
+        </div>
+
+     
+
+        
+<div class="col-md-6">
+    <label for="validationPriority" class="form-label">Priority <span class="text-danger">*</span></label>
+    <select class="form-select" id="validationPriority" name="priority" required>
+      <option selected disabled value="">Choose...</option>
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+      <option value="Urgent">Urgent</option>
+    </select>
+    <div class="invalid-feedback">Please select a priority level.</div>
+  </div>
+
+  <div class="col-md-6">
+    <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
+    <input type="date" class="form-control" id="fromDate" name="fromdate" required>
+    <div class="invalid-feedback">Please select a valid start date.</div>
+  </div>
+  
+  <div class="col-md-6">
+    <label for="toDate" class="form-label">To Date <span class="text-danger">*</span></label>
+    <input type="date" class="form-control" id="toDate" name="todate" required>
+    <div class="invalid-feedback">Please select a valid end date.</div>
+  </div>
+
+
+        <!-- <div class="col-md-6">
+          <label for="validationCustom03" class="form-label">City</label>
+          <input type="text" class="form-control" id="validationCustom03" required>
+          <div class="invalid-feedback">Please provide a valid city.</div>
+        </div> -->
+
+
+        <!-- <div class="col-md-3">
+          <label for="validationCustom04" class="form-label">State</label>
+          <select class="form-select" id="validationCustom04" required>
+            <option selected disabled value="">Choose...</option>
+            <option>...</option>
+          </select>
+          <div class="invalid-feedback">Please select a valid state.</div>
+        </div> -->
+        <!-- <div class="col-md-3">
+          <label for="validationCustom05" class="form-label">Zip</label>
+          <input type="text" class="form-control" id="validationCustom05" required>
+          <div class="invalid-feedback">Please provide a valid zip.</div>
+        </div> -->
+        <!-- <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+            <label class="form-check-label" for="invalidCheck">
+              Agree to terms and conditions
+            </label>
+            <div class="invalid-feedback">You must agree before submitting.</div>
+          </div>
+        </div> -->
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">Submit</button>
+        </div>
+      </form><!-- End Custom Styled Validation -->
+    </div>
+  </div>
+</div>
+
+
+
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ selected_project.projectname }}</h5>
+
+
+              <table class="table datatable" id="userTable">
+                <thead>
+                  <tr>
+                    <th>Task Name</th>
+                    <th>Priority</th>
+                    <th>From Date</th>
+                    <th>To Date</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                  {% if tasks %}
+                      {% for task in tasks %}
+                      <tr>
+                          <td>{{ task.taskname }}</td>
+
+                        
+                       
+                       
+                        <td>
+                          
+                          <span
+                            {% if task.priority == "High" or task.priority == "Urgent" %}
+                            class="text-danger"
+                            {% elif task.priority == "Medium" %}
+                            class="text-primary"
+                        {% elif task.priority == "Low" %}
+                            class="text-secondary"
+                        {% endif %}>
+
+                          {{ task.priority }}</td>
+                        </span>
+
+                          <td>{{ task.from_date }}</td>
+                          <td>{{ task.to_date }}</td>
+
+                                             <!-- Edit and Delete Options -->
+<td>
+  <div class="filter">
+      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+       
+        <li>
+          <a class="dropdown-item edit-link" href="#" 
+             data-bs-toggle="modal" 
+             data-id="{{ task.id }}" 
+             data-taskname="{{ task.taskname }}" 
+             data-priority="{{ task.priority }}" 
+             data-fromdate="{{ task.from_date }}" 
+             data-todate="{{ task.to_date }}">
+             Edit
+          </a>
+        </li>
+        
+            
+            <li>
+              <a class="dropdown-item delete-link" href="#" data-id="{{ task.id }}" data-taskname="{{ task.taskname }}">
+                Delete
+              </a>
+            </li>
+            
+      </ul>
+  </div>
+</td>
+
+           
+                      </tr>
+
+  
+
+                      {% endfor %}
+                  {% else %}
+                      <tr>
+                          <td colspan="4">No tasks available for this project.</td>
+                      </tr>
+                  {% endif %}
+              </tbody>
+            </table>
+
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+ <!-- Modal for Editing Task -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editTaskForm">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="editTaskName" class="form-label">Task Name</label>
+            <input type="text" class="form-control" id="editTaskName" name="taskname" required>
+          </div>
+          <div class="mb-3">
+            <label for="editPriority" class="form-label">Priority</label>
+            <select class="form-select" id="editPriority" name="priority" required>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="editFromDate" class="form-label">From Date</label>
+            <input type="date" class="form-control" id="editFromDate" name="fromdate" required>
+          </div>
+          <div class="mb-3">
+            <label for="editToDate" class="form-label">To Date</label>
+            <input type="date" class="form-control" id="editToDate" name="todate" required>
+          </div>
+          <input type="hidden" id="editTaskId">
+          <button type="submit" class="btn btn-primary">Update Task</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+  <script>
+    document.getElementById("projectbtn").addEventListener("click", function() {
+      var card = document.getElementById("projectCard");
+      var button = document.getElementById("projectbtn");
+      
+      // Toggle visibility
+      if (card.style.display === "none" || card.style.display === "") {
+        card.style.display = "block";
+        button.textContent = "Close Task"; // Change button text to "Close Project"
+      } else {
+        card.style.display = "none";
+        button.textContent = "Create Task"; // Change button text back to "Create Project"
+      }
+    });
+  </script>
+  <script>
+
+  
+  document.addEventListener('DOMContentLoaded', function () {
+    var editButtons = document.querySelectorAll('[data-bs-target="#editProjectModal"]');
+    
+    editButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            var projectId = button.getAttribute('data-id');
+            var projectName = button.getAttribute('data-projectname');
+            var taskName = button.getAttribute('data-taskname');
+            var priority = button.getAttribute('data-priority');
+            var fromDate = button.getAttribute('data-fromdate');
+            var toDate = button.getAttribute('data-todate');
+
+            // Set modal fields
+            document.getElementById('editProjectId').value = projectId;
+            document.getElementById('editProjectName').value = projectName;
+            document.getElementById('editTaskName').value = taskName;
+            document.getElementById('editPriority').value = priority;
+            document.getElementById('editFromDate').value = fromDate;
+            document.getElementById('editToDate').value = toDate;
+
+            // Dynamically set the form action URL
+            var form = document.getElementById('editProjectForm');
+            form.action = '/project/edit/' + projectId + '/';
+        });
+    });
+});
+
+</script>
+
+<!-- SweetAlert JavaScript -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const deleteLinks = document.querySelectorAll('.delete-link');
+
+    deleteLinks.forEach(link => {
+      link.addEventListener('click', function (event) {
+        event.preventDefault();  // Prevent default link behavior
+
+        const taskId = this.getAttribute('data-id');
+        const taskName = this.getAttribute('data-taskname');
+
+        // Show SweetAlert confirmation
+        Swal.fire({
+          title: `Are you sure you want to delete task "${taskName}"?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, delete it!',
+          cancelButtonText: 'No, cancel!',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Send delete request via JavaScript
+            fetch(`/delete_task/${taskId}/`, {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+            }).then(response => {
+              if (response.ok) {
+                Swal.fire(
+                  'Deleted!',
+                  'Your task has been deleted.',
+                  'success'
+                ).then(() => {
+                  location.reload();  // Reload the page after deletion
+                });
+              } else {
+                Swal.fire('Error!', 'There was a problem deleting the task.', 'error');
+              }
+            });
+          }
+        });
+      });
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var fromDateInput = document.getElementById('fromDate');
+    var toDateInput = document.getElementById('toDate');
+    var form = fromDateInput.closest('form');
+
+    function validateDates() {
+      var fromDate = new Date(fromDateInput.value);
+      var toDate = new Date(toDateInput.value);
+
+      if (fromDate && toDate && toDate < fromDate) {
+        toDateInput.setCustomValidity('The "To Date" must be the same as or greater than the "From Date".');
+      } else {
+        toDateInput.setCustomValidity('');
+      }
+    }
+
+    fromDateInput.addEventListener('change', validateDates);
+    toDateInput.addEventListener('change', validateDates);
+
+    form.addEventListener('submit', function(event) {
+      validateDates();
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    });
+  });
+</script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Get all edit buttons
+    const editLinks = document.querySelectorAll('.edit-link');
+    
+    // Get the modal
+    const editTaskModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+    
+    // Iterate over each edit link and add click event listener
+    editLinks.forEach(link => {
+      link.addEventListener('click', function (e) {
+        e.preventDefault(); // Prevent default link behavior
+
+        // Get data attributes from the clicked link
+        const taskId = this.getAttribute('data-id');
+        const taskName = this.getAttribute('data-taskname');
+        const priority = this.getAttribute('data-priority');
+        const fromDate = this.getAttribute('data-fromdate');
+        const toDate = this.getAttribute('data-todate');
+        
+        // Populate modal form with the data
+        document.getElementById('editTaskId').value = taskId;
+        document.getElementById('editTaskName').value = taskName;
+        document.getElementById('editPriority').value = priority;
+        document.getElementById('editFromDate').value = fromDate;
+        document.getElementById('editToDate').value = toDate;
+
+        // Show the modal
+        editTaskModal.show();
+      });
+    });
+  });
+</script>
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const editTaskForm = document.getElementById('editTaskForm');
+    
+    editTaskForm.addEventListener('submit', function (e) {
+      e.preventDefault(); // Prevent default form submission
+
+      const taskId = document.getElementById('editTaskId').value;
+      const url = `/update-task/${taskId}/`;  // Use the appropriate URL
+
+      const formData = new FormData(editTaskForm); // Collect form data
+
+      // Send the AJAX request to update the task
+      fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          // Handle success (e.g., close the modal, show success message)
+          alert('Task updated successfully!');
+          location.reload(); // Reload the page to show updated data
+        } else {
+          // Handle error
+          alert('Error updating task');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  });
+</script>
+
+</body>
+
+
+{% endblock content %}

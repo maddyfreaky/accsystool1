@@ -1,0 +1,971 @@
+{% load static %}
+
+<!-- ======= Sidebar ======= -->
+ <aside id="sidebar" class="sidebar">
+
+    <ul class="sidebar-nav" id="sidebar-nav">
+
+      <li class="nav-item">
+        <a class="nav-link collapsed"  href="{% url 'maintenance' %}">
+          <i class="ri-dashboard-fill"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'maintenance' %}">
+          <i class="ri-home-wifi-fill"></i>
+          <span>Home</span>
+        </a>
+      </li>
+
+      {% if request.user.is_superuser %}
+
+
+      <li class="nav-item">
+        <a class="nav-link collapsed " href="{% url 'admin_custom' %}">
+          <i class="ri-admin-fill"></i>
+          <span>Admin</span>
+        </a>
+      </li>
+      
+      {% endif %}
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'user_list' %}">
+          <i class="ri-flow-chart"></i>
+          <span>Users</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'workflow' %}">
+          <i class="ri-flow-chart"></i>
+          <span>Workflow Management</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'todlistpage' %}">
+          <i class="ri-contacts-fill"></i>
+          <span>Task Management</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'maintenance' %}">
+          <i class="ri-edit-box-fill"></i>
+          <span>Inputs</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'maintenance' %}">
+          <i class="ri-article-fill"></i>
+          <span>Reports</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'utility' %}">
+          <i class="ri-tools-fill"></i>
+          <span>Utilities</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'maintenance' %}">
+          <i class="ri-information-fill"></i>
+          <span>Policies</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'maintenance' %}">
+          <i class="ri-phone-fill"></i>
+          <span>Contact Us</span>
+        </a>
+      </li>
+      
+      <!-- End Dashboard Nav -->
+
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-menu-button-wide"></i><span>File</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="#">
+              <i class="bi bi-circle menu-item"></i><span>Exit</span>
+            </a>
+          </li> -->
+          <!-- <li>
+            <a href="#">
+              <i class="bi bi-circle menu-item"></i><span>All Leads</span>
+            </a>
+          </li>
+          <li>
+            <a href="components-badges.html">
+              <i class="bi bi-circle"></i><span>Lost</span>
+            </a>
+          </li>
+          <li>
+            <a href="components-breadcrumbs.html">
+              <i class="bi bi-circle"></i><span>Junk</span>
+            </a>
+          </li> -->
+          
+         
+         
+        
+        
+        
+      
+        
+        <!-- </ul>
+      </li>End Components Nav -->
+
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#master-nav" data-bs-toggle="collapse" href="#">
+            <i class="bi bi-journal-text"></i><span>Master</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="master-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+            <li>
+                <a href="#">
+                    <i class="bi bi-circle"></i><span>Chart of Accounts</span>
+                </a>
+            </li> -->
+    
+            <!-- Inventory Section with Nested Dropdown -->
+            <!-- <li>
+                <a href="#" class="nav-link collapsed" data-bs-target="#inventory-nav" data-bs-toggle="collapse">
+                  <i class="bi bi-circle"></i><span>Inventory</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+
+                </a>
+               
+                <ul id="inventory-nav" class="nav-content collapse" style="margin-left: 10%;">
+                  <li>
+                    <a href="products.html">
+                        <i class="bi-gear" style="font-size: 15px;"></i><span>Products</span>
+                    </a>
+                </li>
+                  <li>
+                    <a href="services.html">
+                        <i class="bi-bar-chart" style="font-size: 15px;"></i><span>Non Inventory Items</span>
+                    </a>
+
+                  </li>
+
+                  <li>
+                  <a href="services.html">
+                      <i class="bi-bar-chart" style="font-size: 15px;"></i><span>Services</span>
+                  </a>
+
+                  </li>
+
+
+              <li>
+                <a href="services.html">
+                    <i class="bi-bar-chart" style="font-size: 15px;"></i><span>Unit of Measure</span>
+                </a>
+              
+
+            </li>
+            <li>
+              <a href="services.html">
+                  <i class="bi-bar-chart" style="font-size: 15px;"></i><span>Locations</span>
+              </a>
+              <hr>
+
+          </li>
+                
+                </ul>
+            </li>
+            <li>
+                <a href="executes.html">
+                    <i class="bi bi-circle"></i><span>Executives</span>
+                </a>
+            </li> -->
+    
+            <!-- <li>
+                <a href="pos-user-types.html">
+                    <i class="bi bi-circle"></i><span>POS User Types</span>
+                </a>
+            </li>
+    
+            <li>
+                <a href="consigner.html">
+                    <i class="bi bi-circle"></i><span>Consigner</span>
+                </a>
+            </li> -->
+    
+            <!-- <li>
+                <a href="accounts-groups.html">
+                    <i class="bi bi-circle"></i><span>Accounts Groups</span>
+                </a>
+            </li>
+    
+            <li>
+                <a href="search-masters.html">
+                    <i class="bi bi-circle"></i><span>Search Masters</span>
+                </a>
+            </li>
+        </ul>
+    </li>End Master Nav -->
+
+    <!-- <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#transactions-nav" data-bs-toggle="collapse" href="#">
+        <i class="bi bi-layout-text-window-reverse"></i><span>Transactions</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="transactions-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav"> -->
+        <!-- Purchase Section -->
+        <!-- <li>
+          <a href="#" class="nav-link collapsed" data-bs-target="#purchase-nav" data-bs-toggle="collapse">
+            <i class="bi bi-circle"></i><span>Purchase</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+          </a>
+          <ul id="purchase-nav" class="nav-content collapse" style="margin-left: 10%;">
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#orders-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Orders</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="orders-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Orders</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Orders Cancellation</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#receipts-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Receipts</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="receipts-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Material Receipts</span></a></li>
+
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#invoices-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Invoices</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="invoices-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Vouchers</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Cash Puchase Vouchers</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Vouchers Against Orders</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Vouchers Against Receipts</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#returns-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Returns</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="returns-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Returns</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Returns with Invoice Reference</span></a></li>
+              </ul>
+            </li>
+          </ul>
+        </li> -->
+    
+        <!-- Sales Section -->
+        <!-- <li>
+          <a href="#" class="nav-link collapsed" data-bs-target="#Sales-nav" data-bs-toggle="collapse">
+            <i class="bi bi-circle"></i><span>Sales</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+          </a>
+          <ul id="Sales-nav" class="nav-content collapse" style="margin-left: 10%;">
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#sales-invoices-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Invoices</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="sales-invoices-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Sales Invoices</span></a></li>
+                
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#prices-discounts-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Prices and Discounts</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="prices-discounts-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Sales Prices</span></a></li>
+                
+              </ul>
+            </li>
+          </ul>
+        </li>
+     -->
+        <!-- Finance Section -->
+        <!-- <li>
+          <a href="#" class="nav-link collapsed" data-bs-target="#finance-nav" data-bs-toggle="collapse">
+            <i class="bi bi-circle"></i><span>Finance</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+          </a>
+          <ul id="finance-nav" class="nav-content collapse" style="margin-left: 10%;">
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#finance-receipts-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Receipts</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="finance-receipts-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Receipt From Parties</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Cash Receipts </span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Bank Receipts </span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#finance-payments-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Payments</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="finance-payments-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Payments to Parties</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Cash Payments</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Bank Payments</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Cash Transfers</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#banking-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Banking</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="banking-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Cash Deposits and Withdrawals</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Inter Bank Fund Transfers</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Received Cheques Bounce</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Issued Cheques Bounce</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Bank Reconciliation</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#party-adjustments-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Party Adjustments</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="party-adjustments-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Debit Notes</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Credit Notes</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Adjust Party Bills</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Inter Party Adjustments</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Debit Note on Customers</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Credit Note on Customers</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Credit Note from Suppliers</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Debit Note from Suppliers</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#journals-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Journals</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="journals-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Journal Enteries[Complex]</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Book Incomes or Receivables</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Book Expenses or Payables</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#opening-balances-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Opening Balances</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="opening-balances-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Party Opening Balances</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Opening Balances</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#tds-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>TDS</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="tds-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>TDS Opening Balances</span></a></li>
+                <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>TDS Payments</span></a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#tcs-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>TCS</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="tcs-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>TCS Payments</span></a></li>
+                
+              </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#e-invoice-nav" data-bs-toggle="collapse">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>E-Invoice</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="e-invoice-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                <!-- Add additional items here -->
+                <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>E-Invoice Offline</span></a></li>
+                
+              </ul>
+            </li>
+          </ul>
+        </li>
+     -->
+        <!-- Vouchers Section -->
+        <!-- <li>
+          <a href="#" class="nav-link collapsed" data-bs-target="#voucher-nav" data-bs-toggle="collapse">
+            <i class="bi bi-circle"></i><span>Vouchers</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+          </a>
+          <ul id="voucher-nav" class="nav-content collapse" style="margin-left: 10%;">
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Edit</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>View</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Print</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Bulk Print</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Void</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Delete</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Bulk Delete</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Find Voucher</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Voucher Links</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Edit</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Open Draft Transaction</span>
+              </a>
+            </li>
+            <li>
+              <a href="products.html">
+                <i class="bi-gear" style="font-size: 15px;"></i><span>Open Template Transaction</span>
+              </a>
+            </li>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+     -->
+    <!-- End Tables Nav -->
+
+    <!-- <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-bar-chart"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="reports-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav"> -->
+  
+          <!-- Purchase Section -->
+          <!-- <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#purchase1-nav" data-bs-toggle="collapse">
+                  <i class="bi bi-circle"></i><span>Purchase</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+              </a>
+              <ul id="purchase1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                  <!-- Purchases Dropdown -->
+                  <!-- <li>
+                      <a href="#" class="nav-link collapsed" data-bs-target="#purchases1-nav" data-bs-toggle="collapse">
+                          <i class="bi-gear" style="font-size: 15px;"></i><span>Purchases</span><i class="bi bi-chevron-down ms-auto"></i>
+                      </a>
+                      <ul id="purchases1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                          <!-- Additional Purchases Items -->
+                          <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Standard Report</span></a></li>
+                          <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase with Tax Structure</span></a></li>
+                      </ul>
+                  </li> -->
+                  <!-- Purchase Orders -->
+                  <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Orders</span></a></li> -->
+                  <!-- Material Receipts -->
+                  <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Material Receipts</span></a></li> -->
+                  <!-- Purchase Returns -->
+                  <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Returns</span></a></li> -->
+                  <!-- Open Transactions -->
+                  <!-- <li>
+                      <a href="#" class="nav-link collapsed" data-bs-target="#opentransactions-nav" data-bs-toggle="collapse">
+                          <i class="bi-gear" style="font-size: 15px;"></i><span>Open Transactions</span><i class="bi bi-chevron-down ms-auto"></i>
+                      </a>
+                      <ul id="opentransactions-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                          <!-- Additional Open Transactions Items -->
+                          <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Pending Purchase Orders</span></a></li>
+                          <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Pending Material Receipts</span></a></li>
+                          <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Purchase Order Status Details</span></a></li>
+                      </ul>
+                  </li> -->
+                  <!-- Transaction Listing -->
+                  <!-- <li>
+                      <a href="#" class="nav-link collapsed" data-bs-target="#transactionlisting-nav" data-bs-toggle="collapse">
+                          <i class="bi-gear" style="font-size: 15px;"></i><span>Transaction Listing</span><i class="bi bi-chevron-down ms-auto"></i>
+                      </a>
+                      <ul id="transactionlisting-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                          <!-- Additional Transaction Listing Items -->
+                          <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Orders</span></a></li>
+                          <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Receipts</span></a></li>
+                          <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Invoices</span></a></li>
+                          <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Returns</span></a></li>
+                      </ul>
+                  </li>
+              </ul>
+          </li> -->
+  
+          <!-- Sales Section -->
+          <!-- <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#sales2-nav" data-bs-toggle="collapse">
+                  <i class="bi bi-circle"></i><span>Sales</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+              </a>
+              <ul id="sales2-nav" class="nav-content collapse" style="margin-left: 10%;">
+                  <li>
+                      <a href="#" class="nav-link collapsed" data-bs-target="#sales3-nav" data-bs-toggle="collapse">
+                          <i class="bi-gear" style="font-size: 15px;"></i><span>Sales</span><i class="bi bi-chevron-down ms-auto"></i>
+                      </a>
+                      <ul id="sales3-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                          <!-- Additional Sales Items -->
+                          <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Standard Report</span></a></li>
+                          <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Report for GSTR1</span></a></li>
+                      </ul>
+                  </li>
+                  
+                    <li>
+                        <a href="#" class="nav-link collapsed" data-bs-target="#transactionlisting-nav" data-bs-toggle="collapse">
+                            <i class="bi-gear" style="font-size: 15px;"></i><span>Transaction Listing</span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="transactionlisting-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                            <!-- Additional Sales Items -->
+                            <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Sales Invoices Listing</span></a></li>
+                            <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Sales Prices</span></a></li>
+                            <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Latest Sales Prices</span></a></li>
+                        </ul>
+                    </li>
+                    <li>
+                      <a href="#" class="nav-link collapsed" data-bs-target="#misreports-nav" data-bs-toggle="collapse">
+                          <i class="bi-gear" style="font-size: 15px;"></i><span>MIS Reports</span><i class="bi bi-chevron-down ms-auto"></i>
+                      </a>
+                      <ul id="misreports-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                          <!-- Additional Sales Items -->
+                          <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Month Wise Sales By Value</span></a></li>
+                          
+                      </ul>
+                  </li>
+              </ul>
+          </li>
+   -->
+          <!-- Inventory Section -->
+          <!-- <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#Inventory1-nav" data-bs-toggle="collapse">
+                  <i class="bi bi-circle"></i><span>Inventory</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+              </a>
+              <ul id="Inventory1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                  <!-- Inventory Items -->
+                  <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Stock Ledger</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Stock Ledger [Non Inventory Items]</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Stock List</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Stock Report with 12 Ageing</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Stock Transaction Analysis</span></a></li>
+              </ul>
+          </li> -->
+  
+          <!-- Finance Section -->
+          <!-- <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#finance1-nav" data-bs-toggle="collapse">
+                  <i class="bi bi-circle"></i><span>Finance</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+              </a>
+              <ul id="finance1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                  <!-- Finance Items -->
+                  <!-- <li>
+                    <a href="#" class="nav-link collapsed" data-bs-target="#financialstatements-nav" data-bs-toggle="collapse">
+                        <i class="bi-gear" style="font-size: 15px;"></i><span>Financial Statements</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="financialstatements-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                        <!-- Additional Sales Items -->
+                        <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Trial Balance</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Trial Balance For a Period</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Profit and Loss</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Profit and Loss T-Form</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Balance Sheet</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Balance Sheet T-Form</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Cash Flow</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Funds Flow</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Ledger</span></a></li>
+                    </ul>
+                </li>
+                <li>
+                  <a href="#" class="nav-link collapsed" data-bs-target="#ledgerbyaccountgroup-nav" data-bs-toggle="collapse">
+                      <i class="bi-gear" style="font-size: 15px;"></i><span>Ledger By Account Group</span><i class="bi bi-chevron-down ms-auto"></i>
+                  </a>
+                  <ul id="ledgerbyaccountgroup-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                      <!-- Additional Sales Items -->
+                      <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Standard Report</span></a></li>
+                      <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Other cost analysis</span></a></li>
+                      <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>PNL trx listing with segments</span></a></li>
+                  </ul>
+              </li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Ledger with Bill Details</span></a></li>
+                  <li>
+                    <a href="#" class="nav-link collapsed" data-bs-target="#Books1-nav" data-bs-toggle="collapse">
+                        <i class="bi-gear" style="font-size: 15px;"></i><span>Books</span><i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <ul id="Books1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                        <!-- Additional Sales Items -->
+                        <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Cash Book</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Bank Book</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Day Book</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>BRS</span></a></li>
+                        <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Bank Reconciliation</span></a></li>
+                    </ul>
+                </li>
+                <li>
+                  <a href="#" class="nav-link collapsed" data-bs-target="#receivablesandpayables-nav" data-bs-toggle="collapse">
+                      <i class="bi-gear" style="font-size: 15px;"></i><span>Receivables and Payables</span><i class="bi bi-chevron-down ms-auto"></i>
+                  </a>
+                  <ul id="receivablesandpayables-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                      <!-- Additional Sales Items -->
+                      <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Overdue Receivables</span></a></li>
+                      <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Overdue Payables</span></a></li>
+                      
+                  </ul>
+              </li>
+              <li>
+                <a href="#" class="nav-link collapsed" data-bs-target="#pendingbills-nav" data-bs-toggle="collapse">
+                    <i class="bi-gear" style="font-size: 15px;"></i><span>Pending Bills</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="pendingbills-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                    <!-- Additional Sales Items -->
+                    <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Pending Bills For Customer</span></a></li>
+                    <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Pending Bills For Customers</span></a></li>
+                    <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Pending Bills For Supplier</span></a></li>
+                    <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Pending Bills For Suppliers</span></a></li>
+                </ul>
+            </li>
+            <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#balances1-nav" data-bs-toggle="collapse"> -->
+                  <!-- <i class="bi-gear" style="font-size: 15px;"></i><span>Balances</span><i class="bi bi-chevron-down ms-auto"></i>
+              </a>
+              <ul id="balances1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                  <!-- Additional Sales Items -->
+                  <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Customer Balances</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Customer Balances With Zero Balance</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Customer Balances Without Zero Balance</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Supplier Balances</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Supplier Balances With Zero Balance</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Supplier Balances Without Zero Balance</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Account Balances</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Account Balances[Tree view]</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Ledger</span></a></li>
+              </ul>
+          </li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Transaction Listing</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>TDS</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>TCS</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Open Transactions</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Analysis</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>GST</span></a></li>
+              </ul>
+          </li> -->
+  
+          <!-- GST Section -->
+          <!-- <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#gst1-nav" data-bs-toggle="collapse">
+                  <i class="bi bi-circle"></i><span>GST</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+              </a>
+              <ul id="gst1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                  <!-- GST Items -->
+                  <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>GST Output Listing</span></a></li>
+              </ul>
+          </li> -->
+  
+          <!-- General Section -->
+          <!-- <li>
+              <a href="#" class="nav-link collapsed" data-bs-target="#general1-nav" data-bs-toggle="collapse">
+                  <i class="bi bi-circle"></i><span>General</span><i class="bi bi-chevron-down ms-auto" style="font-size: 1em;"></i>
+              </a>
+              <ul id="general1-nav" class="nav-content collapse" style="margin-left: 10%;"> -->
+                  <!-- General Items -->
+                  <!-- <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Voucher Statistics</span></a></li>
+                  <li><a href="products.html"><i class="bi-gear" style="font-size: 15px;"></i><span>Transaction Activity Log</span></a></li>
+              </ul>
+          </li>
+  
+      </ul>
+  </li> -->
+  <!-- End Charts Nav -->
+
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#icons-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-gem"></i><span>Documents</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Document Uploading</span>
+            </a>
+          </li>
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Document Tracking</span>
+            </a>
+          </li>
+        </ul>
+      </li>End Icons Nav -->
+
+
+      
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#call-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-gem"></i><span>Call Center</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="call-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Inboard</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Onboard</span>
+            </a>
+          </li>
+
+
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Status Report</span>
+            </a>
+          </li>
+
+
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Call Recording</span>
+            </a>
+          </li>
+
+
+
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Followers</span>
+            </a>
+          </li>
+
+
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Remainders</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-remix.html">
+              <i class="bi bi-circle"></i><span>Quality AI</span>
+            </a>
+          </li>
+
+          
+       
+        </ul>
+      </li>End Icons Nav -->
+
+      
+      <!-- <li class="nav-item">
+        <a class="nav-link " href="index.html">
+          <i class="bi bi-grid"></i>
+          <span>Shipments</span>
+        </a>
+      </li>End Dashboard Nav -->
+
+
+
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#ship-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-gem"></i><span>Users</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="ship-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Add New User</span>
+            </a>
+          </li>
+       
+       
+        </ul>
+      </li>
+
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#task-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-gem"></i><span>Task</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="task-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Add New Task</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Task List</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Task Report</span>
+            </a>
+          </li>
+       
+       
+        </ul>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link " href="index.html">
+          <i class="bi bi-grid"></i>
+          <span>Cashback</span>
+        </a>
+      </li>End Dashboard Nav -->
+
+
+      <!-- <li class="nav-item">
+        <a class="nav-link " href="index.html">
+          <i class="bi bi-grid"></i>
+          <span>Affiliates</span>
+        </a>
+      </li>End Dashboard Nav -->
+
+      
+      <!-- <li class="nav-item">
+        <a class="nav-link " href="index.html">
+          <i class="bi bi-grid"></i>
+          <span>Forms</span>
+        </a>
+      </li>End Dashboard Nav -->
+
+
+      
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#sales-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-gem"></i><span>Sales</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="sales-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Add New Task</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Task List</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Task Report</span>
+            </a>
+          </li>
+       
+       
+        </ul>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#knowledge-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-gem"></i><span>Knowledge base</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="Knowledge-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Add New Knowledge base</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Category</span>
+            </a>
+          </li>
+
+          <li>
+            <a href="icons-bootstrap.html">
+              <i class="bi bi-circle"></i><span>Department</span>
+            </a>
+          </li>
+       
+       
+        </ul>
+      </li>
+      
+
+       -->
+      <!-- End Icons Nav -->
+
+
+
+
+
+      
+
+
+
+
+
+
+    
+
+
+
+
+
+    
+
+     
+
+      
+      <!-- End Blank Page Nav -->
+
+    </ul>
+
+  </aside><!-- End Sidebar-->
+  </div>
+</div>

@@ -1,0 +1,62 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<section class="page_404 d-flex align-items-center justify-content-center vh-100">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-sm-12 text-center">
+                <div class="four_zero_four_bg">
+                    <h1 class="text-center text-primary">We'll be back soon...</h1>
+                </div>
+                <div class="contant_box_404 mt-4">
+                    <h3 class="text-center text-primary">The page is under maintenance</h3>
+                    <p class="text-center">Apologies for the inconvenience, please follow for updates</p>
+                    <a class="btn custom-btn btn-primary mt-2" href="{% url 'todlistpage' %}">Back to home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .page_404 {
+        padding: 40px 0;
+        background: #fff;
+        font-family: 'Avro', serif;
+    }
+
+    .four_zero_four_bg {
+        background-image: url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif);
+        height: 400px;
+        background-position: center;
+        background-size: cover;
+        margin-bottom: 20px;
+    }
+
+    .contant_box_404 {
+        margin-top: -20px;
+    }
+
+    h1, h3, p, a {
+        font-family: 'Verdana', sans-serif;
+        margin: 0;
+    }
+    .custom-btn {
+        font-family: 'Verdana', sans-serif;
+        font-weight: 600;
+        padding: 10px 15px;
+        border-radius: 50px; /* Rounded corners */
+        background-color: #007bff; /* Bootstrap primary color */
+        border: none;
+         
+        letter-spacing: 0px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2); /* Soft shadow */
+    }
+
+    .custom-btn:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        box-shadow: 0 8px 12px rgba(0, 123, 255, 0.3); /* Larger shadow on hover */
+        transform: translateY(-2px); /* Slightly lifts the button on hover */
+    }
+</style>

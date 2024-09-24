@@ -1,0 +1,462 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block content %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
+
+
+<main id="main" class="main">
+  
+  
+
+  <div class="pagetitle">
+    <h1>Form Validation</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+        <li class="breadcrumb-item">Forms</li>
+        <li class="breadcrumb-item active">Validation</li>
+      </ol>
+    </nav>
+  </div>
+  <!-- End Page Title -->
+
+
+
+  <section class="section">
+
+
+    <div class="row" >
+    
+
+        <div class="col-lg-12">
+           
+  
+          <div class="card">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <h5 class="card-title">Upload Bulk Lead</h5>
+              <!-- Copy button -->
+
+          </div>
+            <div class="card-body">
+               
+             
+             
+  
+              <!-- Custom Styled Validation -->
+              <form class="row g-3 needs-validation" id="three" novalidate method="post" enctype="multipart/form-data" action="#">
+
+             
+                {% csrf_token %}
+                <div class="col-md-12">
+                  <!-- <label for="validationDefault04" class="form-label">Assigned</label> -->
+                 <input type="file" class="form-control" name="file" required>
+                </div>
+               
+                <div class="col-12">
+                  <button class="btn btn-primary" type="submit">Submit form</button>
+                </div>
+              </form>
+
+              <!-- End Custom Styled Validation -->
+  
+            </div>
+          </div>
+  
+        
+        </div>
+      </div>
+      
+      
+     
+
+    <!-- TABLE START -->
+
+      <div class="row">
+        <div class="col-lg-12">
+
+          <div class="card">
+          
+<div id="overlay">
+  <div class="spinner"></div>
+</div>
+  
+<div class="card-body">
+  <form method="post" action="#">
+    {% csrf_token %}
+  <input type="text" class="form-control-sm mt-3" placeholder="Search..." name="searched">  
+  <input type="submit" class="btn btn-primary btn-sm" value="Search">
+</form>
+
+  <div class="mt-3">
+    <a href="#" class="btn btn-primary">CSV</a>
+  
+ 
+
+  <a href="#" class="btn btn-primary">PDF</a>
+
+  <a href="#" class="btn btn-primary">Excel</a>
+  
+  <form action="#" method="post" id="send-emails-form">
+    {% csrf_token %}
+    <button type="submit">Send Emails</button>
+</form>
+
+
+  <!-- <button class="btn btn-primary">Mail</button> -->
+  <!-- <button onclick="copyTableData()" class="btn btn-primary"></button> -->
+
+  <!-- Table with stripped rows -->
+</div>
+<form id="paginationForm" method="post">
+  <select id="rowPerPage" name="per_page" onchange="updateRowsPerPage(this)" class="mt-3">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="all">All</option>
+  </select>
+</form>
+
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <input type="submit" value="Logout" >
+</form>
+
+  <div class="table-responsive text-wrap mt-4">
+    <table id="mytable" class="table table-bordered" style="width:100%">     
+      <thead class="bg-primary text-white">
+         <tr>
+          
+          <th><input type="checkbox" id="selectAll" >            
+             <th><b>Name</b></th>
+             <th>Address</th>
+             <th>City</th>
+             <th>State</th>
+             <th>Pincode</th>
+             <th>Email</th>
+             <th>Phone_no</th>
+             <th>Status</th>
+             <th>Source</th>
+             <th>Assigned</th>
+             <th style="white-space: nowrap;">Campaign ID</th>
+             <th>Medium</th>
+             <th>Action</th>
+         </tr>
+     </thead>
+     <tbody class="text-wrap">
+         {% for leads in leads %}
+         <tr style="white-space: nowrap;">
+          <td><input type="checkbox" class="checkbox"></td          >
+            <td>{{ leads.name }}</td>
+             <td>{{ leads.address}}</td>
+             <td>{{ leads.city }}</td>
+             <td>{{ leads.state }}</td>
+             <td>{{ leads.pincode }}</td>
+             <td><a href="mailto:{{ leads.email }}">{{ leads.email }}</a></td>
+             <td>{{ leads.phone_no }}</td>
+             <td>{{ leads.status }}</td>
+             <td>{{ leads.source }}</td>
+             <td>{{ leads.assigned }}</td>
+             <td>{{ leads.campaign_id }}</td>
+             <td>{{ leads.medium }}</td>
+             
+             <td> <a class="icon" href="#" data-bs-toggle="dropdown">
+               <i class="bi bi-three-dots"></i>
+             </a>
+             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow flex-column">
+               <li class="dropdown-header text-start">
+                 <!-- <h6>Filter</h6> -->
+               </li>
+   
+               <li>
+                 <a class="dropdown-item" href="#">
+                   <i class="bi bi-pencil"></i> EDIT
+                 </a>
+               </li>
+               <li>
+                 <a class="dropdown-item" href="/delete/{{ leads.id }}" onclick="return confirmDelete('{{ leads.id }}')">
+                   <i class="bi bi-trash"></i> Delete
+                 </a>
+                 
+               </li>
+             </ul>
+            </td>
+   
+   
+         </tr>
+         {% endfor %}
+     </tbody>
+   </table>
+<!-- Pagination -->
+
+{% if leads.paginator.num_pages > 1 %}
+<div class="pagination">
+    <ul class="pagination">
+        {% if leads.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&per_page={{ per_page }}">&laquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ leads.previous_page_number }}&per_page={{ per_page }}">Previous</a>
+            </li>
+        {% endif %}
+
+        {% for page_num in leads.paginator.page_range %}
+            {% if page_num == 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_num }}&per_page={{ per_page }}">{{ page_num }}</a>
+                </li>
+            {% elif page_num == leads.number|add:'-2' or page_num == leads.number|add:'-1' or page_num == leads.number or page_num == leads.number|add:'1' or page_num == leads.number|add:'2' or page_num == leads.paginator.num_pages %}
+                <li class="page-item {% if page_num == leads.number %}active{% endif %}">
+                    <a class="page-link" href="?page={{ page_num }}&per_page={{ per_page }}">{{ page_num }}</a>
+                </li>
+            {% elif page_num == leads.number|add:'-3' or page_num == leads.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="#">...</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if leads.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ leads.next_page_number }}&per_page={{ per_page }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ leads.paginator.num_pages }}&per_page={{ per_page }}">&raquo;</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Pagination End -->
+
+  </div>
+  <!-- End Table with stripped rows -->
+</div>
+
+         
+          </div>
+
+        </div>
+      </div>
+
+    <!-- TABLE END -->
+  </section>
+
+</main><!-- End #main -->
+
+
+
+
+<style>
+ 
+
+  /* Overlay styles */
+  #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 1); /* Semi-transparent white */
+      z-index: 9999; /* Ensure it's above other content */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden; /* Hide scrollbar */
+
+  }
+
+  /* Spinner styles */
+  .spinner {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 5px solid transparent;
+      border-top-color: #007bff; /* Bootstrap primary color */
+      animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+  }
+
+  /* Hide the overlay when content is loaded */
+  #overlay.loaded {
+      display: none;
+  }
+
+/* ANIMATION */
+
+/* Override default animation duration */
+[data-aos="fade-up"] {
+    transition-duration: 1s !important;
+}
+
+/* Override default easing function */
+[data-aos="fade-up"] {
+    transition-timing-function: ease-in-out !important;
+}
+
+ 
+</style>
+
+  
+<script>
+  $(window).on('load', function() {
+    // Set a timeout to hide the overlay after 5 seconds
+    setTimeout(function() {
+      $('#overlay').addClass('loaded');
+      $('body').css('overflow', 'auto'); 
+    }, 1000); // 5000 milliseconds = 5 seconds
+  });
+</script>
+
+
+
+
+
+<script>
+  // Get the "Select All" checkbox
+const selectAllCheckbox = document.getElementById('selectAll');
+
+// Get all checkboxes except the "Select All" checkbox
+const checkboxes = document.querySelectorAll('.checkbox');
+
+// Add event listener to the "Select All" checkbox
+selectAllCheckbox.addEventListener('change', function() {
+  // Iterate over each checkbox and set its checked property
+  checkboxes.forEach(checkbox => {
+      checkbox.checked = this.checked;
+  });
+});
+// Add event listener to each individual checkbox
+checkboxes.forEach(checkbox => {
+  checkbox.addEventListener('change', function() {
+      // If any checkbox other than "Select All" is unchecked,
+      // uncheck the "Select All" checkbox
+      if (!this.checked && this !== selectAllCheckbox) {
+          selectAllCheckbox.checked = false;
+      } else {
+          // Check if all checkboxes (except "Select All") are checked,
+          // and check the "Select All" checkbox if so
+          const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+          selectAllCheckbox.checked = allChecked;
+      }
+  });
+});
+</script>
+
+<script>
+
+
+  function copyTableData() {
+      var table = document.getElementById("mytable");
+
+      // Extract all rows' data
+      var allRowsData = Array.from(table.querySelectorAll("tbody tr")).map(row => {
+          return Array.from(row.cells).map(cell => cell.innerText).join('\t');
+      }).join('\n');
+
+      if (allRowsData) {
+          // Create a textarea element to hold the data
+          var textarea = document.createElement("textarea");
+          textarea.value = allRowsData;
+
+          // Append the textarea to the document
+          document.body.appendChild(textarea);
+
+          // Select the textarea content
+          textarea.select();
+
+          // Copy the selected text
+          document.execCommand('copy');
+
+          // Remove the textarea
+          document.body.removeChild(textarea);
+
+          alert("Table data copied to clipboard successfully!");
+      } else {
+          alert("No data to copy.");
+      }
+  }
+
+
+</script>
+
+
+<script>
+  function updateRowsPerPage(select) {
+      var value = select.value;
+      if (value === 'all') {
+          // Set a large number to show all rows
+          window.location.href = "#?per_page=1000";
+      } else {
+          window.location.href = "#}?per_page=" + value;
+      }
+  }
+</script>
+
+
+<script>
+  $(document).ready(function () {
+    $('#send-emails-form').submit(function (e) {
+      e.preventDefault();
+
+      Swal.fire({
+        title: 'Sending emails...',
+        html: '<div id="progress-container"><div id="progress-bar"></div></div>',
+        showCancelButton: false,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        willOpen: () => {
+          Swal.showLoading();
+
+          // Get form data
+          var formData = new FormData($('#send-emails-form')[0]);
+
+          axios.post('#', formData)
+            .then(function (response) {
+              if (response.status === 200 && response.data.message === 'Emails sent successfully!') {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Emails sent successfully!'
+                }).then(function () {
+                  // Reload the page to fetch the updated data
+                  location.reload();
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error!',
+                  text: response.data.message
+                });
+              }
+            }).catch(function (error) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Warning!',
+                text: 'No Mails Found.'
+              });
+            });
+        }
+      });
+    });
+  });
+</script>
+
+
+{% endblock content %}

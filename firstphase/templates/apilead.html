@@ -1,0 +1,290 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+
+
+<main id="main" class="main">
+
+  <div class="pagetitle">
+    <h1>Leads</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Leads</a></li>
+        <!-- <li class="breadcrumb-item">Forms</li> -->
+        <li class="breadcrumb-item active">Create Lead</li>
+      </ol>
+    </nav>
+    
+  </div><!-- End Page Title -->
+  <!-- <h5 id="addNewLeadText" class="card-title add-lead-text">Add New Lead</h5> -->
+
+  <section class="section">
+    <!-- <div id="addLeadContainer"> -->
+    <div class="row">
+    
+
+      <div class="col-lg-12">
+
+        <div class="card">
+          <div class="card-body">
+
+            <!-- Custom Styled Validation -->
+<form class="row g-3 needs-validation" id="one" method="post" action="{% url 'apilead' %}" novalidate>
+
+              {% csrf_token %}
+              <div class="col-md-4">
+                <label for="validationCustom01" class="form-label">Name</label>
+                <input type="text" class="form-control " id="validationCustom01" name="name" value="Vinoth" required>
+                <div class="valid-feedback">
+                  Looks good!
+                </div>
+              </div>
+             
+              <div class="col-md-4">
+                <label for="validationCustom02" class="form-label">Email</label>
+                <input type="email" class="form-control" id="validationCustom02" name='email' required>
+            
+                <div class="valid-feedback">
+                  Looks good!
+                </div>
+                {% if serializer.errors.email %}
+                <p class="text-danger">Email must be a valid Gmail or Yahoo email address</p>
+                {% endif %}
+               
+              </div>
+              <div class="col-md-4">
+                <label for="validationCustomUsername" class="form-label">Address</label>
+                <div class="input-group has-validation">
+                  <!-- <span class="input-group-text" id="inputGroupPrepend">@</span> -->
+                  <input type="text" class="form-control" id="validationCustomUsername" name="address" aria-describedby="inputGroupPrepend" required>
+                 
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label for="validationCustom03" class="form-label">City</label>
+                <input type="text" class="form-control" name="city" id="validationCustom03" required>
+               
+              </div>
+              <div class="col-md-4">
+                <label for="validationCustom04" class="form-label">State</label>
+                <input type="text" class="form-control" name="state" id="validationCustom04" required>
+             
+              </div>
+              <div class="col-md-4">
+                <label for="validationCustom05" class="form-label">PinCode</label>
+                <input type="number" class="form-control"  name='pincode'  id="validationCustom05" required>
+            
+              </div>
+
+              <div class="col-md-4">
+                <label for="validationCustom06" class="form-label">PhoneNumber</label>
+                <input type="number" class="form-control" name="phone_no" id="validationCustom06" required>
+                {% if serializer.errors.phone_no %}
+                <p class="text-danger">Phone number must be a 10-digit number.</p>
+                {% endif %}
+              
+              </div>
+
+              <div class="col-md-4">
+                <label for="validationCustom07" class="form-label">Medium</label>
+                <input type="text" class="form-control"  name='medium' id="validationCustom07" required>
+              
+              </div>
+
+              <div class="col-md-4">
+                <label for="validationCustom08" class="form-label">Campaign iD</label>
+                <input type="number" class="form-control" name="campaign_id" id="validationCustom08" required>
+             
+              </div>
+
+              <div class="col-md-4">
+                <label for="validationDefault09" class="form-label">Status</label>
+                <select class="form-select" id="validationDefault09" name="status" required>
+                  <option selected disabled value="">Choose...</option>
+            
+                  <option selected disabled value="">Choose...</option>
+                  <option value="Lead">Lead</option>   
+                  <option value="Lead">Lead</option>               
+                
+                
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label for="validationDefault10" class="form-label">Source</label>
+                <select class="form-select" name="source" id="validationDefault10" required>
+                  <option selected disabled value="">Choose...</option>
+                  <option value="Facebook">Facebook</option>   
+                  <option value="LinkedIn">LinkedIn</option>               
+                  <!-- <option value="google">Google</option>  
+                  <option value="Direct">Direct</option>               
+                  <option value="Refferal">Refferal</option>                -->
+             
+            
+                 </select>
+              </div>
+
+
+              <div class="col-md-4">
+                <label for="validationDefault11" class="form-label">Assigned</label>
+                <select class="form-select" name="assigned" id="validationDefault11" required>
+                <!-- {% for assign in assigned %}
+                  <option value="{{ assign.first_name }}">{{ assign.first_name }}</option>
+                  {% endfor %} -->
+                  <option value="yyy">uuuu</option>
+
+                </select>
+              </div>
+           
+              <div class="col-12">
+              
+
+                <button class="btn btn-primary" type="submit">Submit form</button>
+              </div>
+            </form><!-- End Custom Styled Validation -->
+
+          </div>
+        </div>
+
+      
+      </div>
+    </div>
+    </div>
+
+    <!-- TABLE START -->
+
+      <div class="row">
+        <div class="col-lg-12">
+
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Datatables</h5>
+             
+
+              <!-- Table with stripped rows -->
+              <div class="table-responsive">
+
+                <table class="table datatable" id="mytable">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>City</th>
+                        <th>State</th>
+                        <th>Pincode</th>
+                        <th>Email</th>
+                        <th>Phone No</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                        <th>Assigned</th>
+                        <th>Campaign ID</th>
+                        <th>Medium</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for lead in leads %}
+                      <tr>
+                        <td>{{ lead.name }}</td>
+                        <td>{{ lead.address }}</td>
+                        <td>{{ lead.city }}</td>
+                        <td>{{ lead.state }}</td>
+                        <td>{{ lead.pincode }}</td>
+                        <td>{{ lead.email }}</td>
+                        <td>{{ lead.phone_no }}</td>
+                        <td>{{ lead.status }}</td>
+                        <td>{{ lead.source }}</td>
+                        <td>{{ lead.assigned }}</td>
+                        <td>{{ lead.campaign_id }}</td>
+                        <td>{{ lead.medium }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  
+
+           
+           
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    <!-- TABLE END -->
+  </section>
+
+</main><!-- End #main -->
+
+<script>
+  // Function to fetch city and state based on pincode
+  function fillCityAndState(pincode) {
+    fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+      .then(response => response.json())
+      .then(data => {
+        const cityInput = document.getElementById('validationCustom03');
+        const stateInput = document.getElementById('validationCustom04');
+
+        if (data[0].Status === 'Success') {
+          const city = data[0].PostOffice[0].District;
+          const state = data[0].PostOffice[0].State;
+
+          cityInput.value = city;
+          stateInput.value = state;
+        } else {
+          alert('Invalid pincode');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to fetch data');
+      });
+  }
+
+  // Listen for input event on pincode input field
+  document.getElementById('validationCustom05').addEventListener('input', function(event) {
+    const pincode = event.target.value;
+    if (pincode.length === 6) { // Assuming pincode length is 6 digits
+      fillCityAndState(pincode);
+    }
+  });
+</script>
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // alert("hhh");
+    var phoneInput = document.getElementById('validationCustom06');
+    var feedbackIcon = phoneInput.nextElementSibling;
+
+    phoneInput.addEventListener('input', function () {
+      var phoneNumber = phoneInput.value.trim();
+      var validPhoneNumberRegex = /^\d{10}$/; // Assuming phone number length should be 10 digits
+
+      if (validPhoneNumberRegex.test(phoneNumber)) {
+        // alert("hi");
+        phoneInput.classList.remove('is-invalid');
+        phoneInput.classList.add('is-valid');
+        feedbackIcon.classList.remove('invalid-feedback');
+        feedbackIcon.classList.add('valid-feedback');
+        feedbackIcon.innerText = 'Looks good!';
+      } else {
+        // alert("else");
+        phoneInput.classList.remove('is-valid');
+        phoneInput.classList.add('is-invalid');
+        feedbackIcon.classList.remove('valid-feedback');
+        feedbackIcon.classList.add('invalid-feedback');
+        feedbackIcon.innerText = 'Please enter a valid 10-digit phone number.';
+      }
+    });
+  });
+</script>
+
+
+{% endblock content %}
