@@ -24,24 +24,25 @@ class Project(models.Model):
     ]
 
     projectname = models.CharField(max_length=200)
-    taskname = models.CharField(max_length=200, null=True, blank=True)
+    # taskname = models.CharField(max_length=200)
 
-    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES,null=True, blank=True)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES)
     from_date = models.DateField(null=True, blank=True)  # Allow null temporarily
     to_date = models.DateField(null=True, blank=True)    # Allow null temporarily
     created_at = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE,related_name='assigned_projects', null=True, blank=True)  # Link to the User model
+    updated_at = models.DateTimeField(auto_now=True)  # New field to store last update tim
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE,related_name='assigned_projects')  # Link to the User model
     # The user who assigned the project (admin/superuser)
-    assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_projects',null=True, blank=True)
+    assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_projects')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
-
- 
-
+    
 
 
-    def _str_(self):
+    
+    def __str__(self):
         return self.projectname
-
+    
 class Issue(models.Model):
     project = models.ForeignKey(Project, related_name='issues', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -93,15 +94,17 @@ class Task(models.Model):
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='Low')
     from_date = models.DateField()
     to_date = models.DateField()
-    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='Not Started')  # Added status field
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='Not Started')
+    
+    description = models.TextField(blank=True)  # New field for task description
 
-
-    # Establishing relationships
+    # Relationships
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
 
     def __str__(self):
         return f"{self.taskname} - {self.priority}"
+
     
 class TodolistFile(models.Model):
     todolist = models.ForeignKey(Todolist, on_delete=models.CASCADE, related_name='files')  # Related to Todolist
@@ -111,3 +114,34 @@ class TodolistFile(models.Model):
     def __str__(self):
         return self.attached_file.name
     
+class ArchivedProject(models.Model):
+        PRIORITY_CHOICES = Project.PRIORITY_CHOICES
+        STATUS_CHOICES = Project.STATUS_CHOICES
+
+        projectname = models.CharField(max_length=200)
+        taskname = models.CharField(max_length=200)
+        priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES)
+        from_date = models.DateField(null=True, blank=True)
+        to_date = models.DateField(null=True, blank=True)
+        created_at = models.DateTimeField()
+        updated_at = models.DateTimeField()
+        deleted_at = models.DateTimeField(default=timezone.now)  # Default to current time
+
+        user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='archived_projects')
+        assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='archived_created_projects')
+        status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
+
+        def __str__(self):
+            return self.projectname
+
+class DeletedTask(models.Model):
+    taskname = models.CharField(max_length=255)
+    priority = models.CharField(max_length=10)
+    from_date = models.DateField()
+    to_date = models.DateField()
+    deleted_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Deleted Task: {self.taskname} - {self.priority}"

@@ -1,0 +1,112 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block content %}
+
+
+<body>
+
+ 
+
+ 
+
+  <main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>All Projects</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+          <!-- <li class="breadcrumb-item">Tables</li> -->
+          <li class="breadcrumb-item active">All Projects</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+
+          <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title">Projects List</h5>
+                    <a href="{% url 'all_projectss' %}" class="btn btn-primary">All Projects</a>
+                </div>
+                
+              
+
+ 
+
+             
+             
+              <table class="table datatable" id="userTable">
+                <thead>
+                    <tr>
+                      <th>S.No</th>
+                      <th>Projectname</th>
+                      <th>Priority</th>
+                      <th>Start Date</th>
+                      <th>End Date</th>
+                      <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% if projects %}
+                    {% for project in projects %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td> 
+                      <td>
+                        <a href="#">{{ project.projectname }}</a> 
+                      </td>
+                      <td>{{ project.priority }}</td>
+                      <td>{{ project.created_at }}</td>
+                      <td>{{ project.to_date }}</td>
+                      <td>
+                          <div class="filter">
+                              <a class="icon" href="#" data-bs-toggle="dropdown">
+                                  <i class="bi bi-three-dots"></i>
+                              </a>
+                              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                  <!-- Add Edit and Delete links here -->
+                                  <li>
+                                      <a class="dropdown-item delete-link" href="#">Delete</a>
+                                  </li>
+                              </ul>
+                          </div>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="5">No projects available.</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+              
+
+
+
+
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+  
+
+
+
+
+
+  
+
+</body>
+
+
+{% endblock content %}

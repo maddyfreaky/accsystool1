@@ -10,6 +10,7 @@ import random
 import string
 from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
+from django.urls import reverse
 
 
 def members(request):
@@ -63,33 +64,34 @@ def register_view(request):
     return render(request, 'register.html')
 
 def user_login(request):
+    # Check if the user is already authenticated
     if request.user.is_authenticated:
-        return redirect('members')
-    
+        return redirect('members')  # Redirect to members page if user is logged in
+
     if request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
-
-
 
         try:
             # Check if a user with the entered email exists
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            
-            return JsonResponse({'status': 'error', 'message': 'Invalid email'})
+            # Return an error response if email does not exist
+            return JsonResponse({'status': 'error', 'message': 'No User Found'})
 
-        
         # Authenticate using the username linked to the email
-        user = authenticate(request, username=user.username, password=password)       
+        user = authenticate(request, username=user.username, password=password)
         if user is not None:
-            
+            # If authentication is successful
             auth_login(request, user)
-            return redirect('members')  # Redirect to success page
+            request.session['login_success'] = True
+            return JsonResponse({'status': 'success', 'redirect_url': reverse('todlistpage')})
         else:
-            return HttpResponse('Invalid login credentials')
+            # Return an error response if the password is incorrect
+            return JsonResponse({'status': 'error', 'message': 'Invalid login credentials'})
     
     return render(request, 'login.html')
+
 
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))

@@ -33,16 +33,21 @@
             <div class="card-body">
              
 
-              {% if  user.is_superuser %}
+              
 
-             <input type="submit" class="btn btn-primary mt-2" value="Create Project" data-bs-toggle="modal" data-bs-target="#fdModal">
+             <div class="d-flex justify-content-between align-items-center mb-3">
+              {% if request.user|in_group:"Admin" or request.user|in_group:"Superadmin" %}
+              <input type="submit" class="btn btn-primary mt-2" value="Create Project" data-bs-toggle="modal" data-bs-target="#fdModal">
+                  <a href="{% url 'all_projectss' %}" class="btn btn-primary mt-2">All Projects</a>
+              {% endif %}
+          </div>
 
 
 
              <!-- <a class="btn btn-primary mt-2" href="#">Assigned Projects</a> -->
 
 
-             {% endif %}
+             
 
              {% if not user.is_superuser %}
              <p>
@@ -60,24 +65,18 @@
              </p>
 
            <!-- Table with stripped rows -->
+<!-- Table with stripped rows -->
 <table class="table datatable">
   <thead>
-      <tr >
+      <tr>
           <th>Project name</th>
           <th>Created_Date</th>
           <th>Update Date</th>
-
           <th>End_Date</th>
-         
-          <!-- <th>Creater Name</th> -->
           <th>Priority</th>
-
           <th>Status</th>
-
-
           {% if request.user|in_group:"Superadmin" %}
-
-          <th>Action</th>
+              <th>Action</th>
           {% endif %}
       </tr>
   </thead>
@@ -85,19 +84,12 @@
       {% for project in projects %}
       <tr>
           <td><a href="{% url 'specific_user_tasks_view' project.id %}">{{ project.projectname }}</a></td>
-
-
-          <!-- <td>{{ project.id }}</td>  -->
           <td>{{ project.created_at|date:"d-m-Y" }}</td>
-          <td>{{ project.updated_at|date:"d-m-Y" }}</td> <!-- Updated date field -->
+          <td>{{ project.updated_at|date:"d-m-Y" }}</td>
+          <td>{{ project.to_date|date:"d-m-Y" }}</td>
 
-
-            <td>{{ project.to_date|date:"d-m-Y" }}</td>
-            <!-- <td>{{ project.assigned_by.username }}</td>  -->
-            
-            <!-- This will show the user who assigned the project -->
-
-            <td>
+          <!-- Display project priority with conditional formatting for colors -->
+          <td>
               <span class="{% if project.priority|lower == 'low' %}text-secondary
                             {% elif project.priority|lower == 'medium' %}text-info
                             {% elif project.priority|lower == 'high' %}text-danger
@@ -106,62 +98,52 @@
                   {{ project.priority|capfirst }}
               </span>
           </td>
-          
-          
-          
+
+          <!-- Display the project status with a dropdown to update it -->
           <td>
-            <form method="post" action="{% url 'update_status' project.id %}" class="d-inline">
-                {% csrf_token %}
-                <div class="dropdown">
-                    <button class="btn 
-                        {% if project.status == 'working' %}btn-primary{% elif project.status == 'pending_review' %}btn-secondary
-                        {% elif project.status == 'overdue' %}btn-danger{% elif project.status == 'completed' %}btn-success
-                        {% elif project.status == 'cancelled' %}btn-warning{% elif project.status == 'not_started' %}btn-info
-                        {% endif %}
-                        btn-sm dropdown-toggle" 
-                        type="button" id="dropdownMenuButton{{ project.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ project.get_status_display }}
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ project.id }}">
-                        {% for value, display in status_choices %}
-                        <li>
-                            <button class="dropdown-item" type="submit" name="status" value="{{ value }}">
-                                {{ display }}
-                            </button>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </form>
-        </td>
-        
-        
-        {% if request.user|in_group:"Superadmin" %}
+              <form method="post" action="{% url 'update_status' project.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <div class="dropdown">
+                      <button class="btn 
+                          {% if project.status == 'working' %}btn-primary{% elif project.status == 'pending_review' %}btn-secondary
+                          {% elif project.status == 'overdue' %}btn-danger{% elif project.status == 'completed' %}btn-success
+                          {% elif project.status == 'cancelled' %}btn-warning{% elif project.status == 'not_started' %}btn-info
+                          {% endif %} btn-sm dropdown-toggle" 
+                          type="button" id="dropdownMenuButton{{ project.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                          {{ project.get_status_display }}
+                      </button>
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ project.id }}">
+                          {% for value, display in status_choices %}
+                          <li>
+                              <button class="dropdown-item" type="submit" name="status" value="{{ value }}">
+                                  {{ display }}
+                              </button>
+                          </li>
+                          {% endfor %}
+                      </ul>
+                  </div>
+              </form>
+          </td>
 
-
+          <!-- Show actions if the user is in Superadmin group -->
+          {% if request.user|in_group:"Superadmin" %}
           <td>
               <div class="filter">
                   <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                   <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                      <!-- <li><a class="dropdown-item" href="#">View</a></li> -->
                       <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProjectModal{{ project.id }}">Edit</a></li>
-
                       <li>
-                        <a class="dropdown-item delete-link" href="#" onclick="confirmDelete({{ project.id }}); return false;">Delete</a>
-
+                          <a class="dropdown-item delete-link" href="#" onclick="confirmDelete({{ project.id }}); return false;">Delete</a>
                       </li>
-
-
-                </ul>
+                  </ul>
               </div>
           </td>
-
           {% endif %}
-          
       </tr>
-      {% endfor %}  
+      {% endfor %}
   </tbody>
 </table>
+
 
 
 <!-- End Table with stripped rows -->

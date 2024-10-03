@@ -13,12 +13,12 @@
   <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>Projects</h1>
+      <h1>User Projects</h1>
       <nav>
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-          <li class="breadcrumb-item">Tables</li>
-          <li class="breadcrumb-item active">Data</li>
+          <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+          <!-- <li class="breadcrumb-item">Tables</li> -->
+          <li class="breadcrumb-item active">User Projects</li>
         </ol>
       </nav>
     </div><!-- End Page Title -->
@@ -39,20 +39,20 @@
       <form class="row g-3 needs-validation" method="post" action="{% url 'create_project' user.id %}" novalidate>
         <!-- Form fields -->
          {% csrf_token %}
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label for="validationCustom01" class="form-label">Project name <span class="text-danger">*</span></label>
           <input type="text" class="form-control" id="validationCustom01" name="projectname" required>
           <div class="valid-feedback">Enter the project name</div>
         </div>
 
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
           <label for="validationCustom02" class="form-label">Task name <span class="text-danger">*</span></label>
           <input type="text" class="form-control" id="validationCustom02" name="taskname" required>
           <div class="valid-feedback">Enter the Task name</div>
-        </div>
+        </div> -->
 
         
-<div class="col-md-4">
+<div class="col-md-6">
     <label for="validationPriority" class="form-label">Priority <span class="text-danger">*</span></label>
     <select class="form-select" id="validationPriority" name="priority" required>
       <option selected disabled value="">Choose...</option>
@@ -78,8 +78,37 @@
   </div>
 
 
+        <!-- <div class="col-md-6">
+          <label for="validationCustom03" class="form-label">City</label>
+          <input type="text" class="form-control" id="validationCustom03" required>
+          <div class="invalid-feedback">Please provide a valid city.</div>
+        </div> -->
+
+
+        <!-- <div class="col-md-3">
+          <label for="validationCustom04" class="form-label">State</label>
+          <select class="form-select" id="validationCustom04" required>
+            <option selected disabled value="">Choose...</option>
+            <option>...</option>
+          </select>
+          <div class="invalid-feedback">Please select a valid state.</div>
+        </div> -->
+        <!-- <div class="col-md-3">
+          <label for="validationCustom05" class="form-label">Zip</label>
+          <input type="text" class="form-control" id="validationCustom05" required>
+          <div class="invalid-feedback">Please provide a valid zip.</div>
+        </div> -->
+        <!-- <div class="col-12">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+            <label class="form-check-label" for="invalidCheck">
+              Agree to terms and conditions
+            </label>
+            <div class="invalid-feedback">You must agree before submitting.</div>
+          </div>
+        </div> -->
         <div class="col-12">
-          <button class="btn btn-primary" type="submit">Assign</button>
+          <button class="btn btn-primary" type="submit">Create</button>
         </div>
       </form><!-- End Custom Styled Validation -->
     </div>
@@ -90,14 +119,13 @@
 
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">{{user.username}} Project List</h5>
+              <h5 class="card-title"> Project List</h5>
 
 
               <table class="table datatable" id="userTable">
                 <thead>
                     <tr>
                         <th>Project Name</th>
-                        <th>Task Name</th>
                         <th>From Date</th>
                         <th>To Date</th>
                         <th>Priority</th>
@@ -110,12 +138,11 @@
                 <tbody>
                     {% for project in projects %}
                     <tr>
-                        <td>
-                            <a href="{% url 'project_detail' project.id %}">
-                                {{ project.projectname }}
-                            </a>
-                        </td>                    
-                            <td>{{ project.taskname }}</td>
+                      <td>
+                        <a href="{% url 'task_detail' project.id user.id %}">
+                            {{ project.projectname }}
+                        </a>
+                    </td>                    
                         <td>{{ project.from_date }}</td>
                         <td>{{ project.to_date }}</td>
                         <td>
@@ -151,19 +178,20 @@
         <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
          
-            <li>
-                <a class="dropdown-item" href="#" 
-                   data-bs-toggle="modal" 
-                   data-bs-target="#editProjectModal" 
-                   data-id="{{ project.id }}" 
-                   data-projectname="{{ project.projectname }}" 
-                   data-taskname="{{ project.taskname }}" 
-                   data-priority="{{ project.priority }}" 
-                   data-fromdate="{{ project.from_date|date:'Y-m-d' }}" 
-                   data-todate="{{ project.to_date|date:'Y-m-d' }}">
-                   Edit
-                </a>
-              </li>
+          <li>
+            <a class="dropdown-item" href="#" 
+               data-bs-toggle="modal" 
+               data-bs-target="#editProjectModal" 
+               data-id="{{ project.id }}" 
+               data-projectname="{{ project.projectname }}" 
+               data-taskname="{{ project.taskname }}"  
+               data-priority="{{ project.priority }}" 
+               data-fromdate="{{ project.from_date|date:'Y-m-d' }}" 
+               data-todate="{{ project.to_date|date:'Y-m-d' }}">
+               Edit
+            </a>
+        </li>
+        
               
               <li>
                 <a class="dropdown-item delete-link" href="#" 
@@ -215,10 +243,10 @@
                         <input type="text" class="form-control" id="editProjectName" name="projectname" required>
                     </div>
 
-                    <div class="col-12 mt-4">
+                    <!-- <div class="col-12 mt-4">
                         <label for="editTaskName" class="form-label">Task Name</label>
                         <input type="text" class="form-control" id="editTaskName" name="taskname" required>
-                    </div>
+                    </div> -->
 
                     <div class="col-12 mt-4">
                         <label for="editPriority" class="form-label">Priority</label>
@@ -268,17 +296,17 @@
       }
     });
   </script>
+
   <script>
 
-  
   document.addEventListener('DOMContentLoaded', function () {
     var editButtons = document.querySelectorAll('[data-bs-target="#editProjectModal"]');
-    
+
     editButtons.forEach(function (button) {
         button.addEventListener('click', function () {
             var projectId = button.getAttribute('data-id');
             var projectName = button.getAttribute('data-projectname');
-            var taskName = button.getAttribute('data-taskname');
+            var taskName = button.getAttribute('data-taskname'); // If needed, uncomment the task name input field
             var priority = button.getAttribute('data-priority');
             var fromDate = button.getAttribute('data-fromdate');
             var toDate = button.getAttribute('data-todate');
@@ -286,7 +314,6 @@
             // Set modal fields
             document.getElementById('editProjectId').value = projectId;
             document.getElementById('editProjectName').value = projectName;
-            document.getElementById('editTaskName').value = taskName;
             document.getElementById('editPriority').value = priority;
             document.getElementById('editFromDate').value = fromDate;
             document.getElementById('editToDate').value = toDate;
@@ -297,8 +324,8 @@
         });
     });
 });
-
 </script>
+
 <script>
 
 
@@ -339,6 +366,37 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+</script>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var fromDateInput = document.getElementById('fromDate');
+    var toDateInput = document.getElementById('toDate');
+    var form = fromDateInput.closest('form');
+
+    function validateDates() {
+      var fromDate = new Date(fromDateInput.value);
+      var toDate = new Date(toDateInput.value);
+
+      if (fromDate && toDate && toDate < fromDate) {
+        toDateInput.setCustomValidity('The "To Date" must be the same as or greater than the "From Date".');
+      } else {
+        toDateInput.setCustomValidity('');
+      }
+    }
+
+    fromDateInput.addEventListener('change', validateDates);
+    toDateInput.addEventListener('change', validateDates);
+
+    form.addEventListener('submit', function(event) {
+      validateDates();
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    });
+  });
 </script>
 
 

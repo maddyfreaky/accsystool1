@@ -13,238 +13,166 @@
  
 
   <main id="main" class="main">
-
     <div class="pagetitle">
-      <h1>Tasks</h1>
-      <nav>
-        <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-          <!-- <li class="breadcrumb-item">Tables</li> -->
-          <li class="breadcrumb-item active">Tasks</li>
-        </ol>
-      </nav>
+        <h1>Tasks for Project: {{ project.projectname }}</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                <li class="breadcrumb-item active">Tasks</li>
+            </ol>
+        </nav>
     </div><!-- End Page Title -->
 
     <section class="section">
-      <div class="row">
-        <div class="col-lg-12">              
-           <!-- Button to toggle visibility of the card -->
-           {% if request.user|in_group:"Superadmin" %}
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Button to toggle visibility of the card -->
+                {% if request.user|in_group:"Superadmin" %}
+                    <button id="projectbtn" class="btn btn-primary mb-3">Create Task</button>
+                {% endif %}
 
-<button id="projectbtn" class="btn btn-primary mb-3">Create Task</button>
-{% endif %}
-
-<!-- Initially hidden card -->
-<div class="col-lg-12" id="projectCard" style="display: none;">
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Task Creation</h5>
-   
-      <!-- <p>For custom Bootstrap form validation messages, you’ll need to add the <code>novalidate</code> boolean attribute to your <code>&lt;form&gt;</code>. This disables the browser default feedback tooltips, but still provides access to the form validation APIs in JavaScript.</p> -->
-      <!-- Custom Styled Validation -->
-
-
-      <form class="row g-3 needs-validation" method="post" action="{% url 'specificusertask' project.id user.id %}" novalidate>
-        <!-- Form fields -->
-         {% csrf_token %}
-        <div class="col-md-6">
-          <label for="validationCustom01" class="form-label">Task name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="validationCustom01" name="taskname" required>
-          <!-- <div class="valid-feedback">Enter the Task name</div> -->
-        </div>
-
-     
-
-        
-<div class="col-md-6">
-    <label for="validationPriority" class="form-label">Priority <span class="text-danger">*</span></label>
-    <select class="form-select" id="validationPriority" name="priority" required>
-      <option selected disabled value="">Choose...</option>
-      <option value="Low">Low</option>
-      <option value="Medium">Medium</option>
-      <option value="High">High</option>
-      <option value="Urgent">Urgent</option>
-    </select>
-    <div class="invalid-feedback">Please select a priority level.</div>
-  </div>
-
-  <div class="col-md-6">
-    <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
-    <input type="date" class="form-control" id="fromDate" name="fromdate" required>
-    <div class="invalid-feedback">Please select a valid start date.</div>
-  </div>
-  
-  <div class="col-md-6">
-    <label for="toDate" class="form-label">To Date <span class="text-danger">*</span></label>
-    <input type="date" class="form-control" id="toDate" name="todate" required>
-    <div class="invalid-feedback">Please select a valid end date.</div>
-  </div>
-
-
-        <!-- <div class="col-md-6">
-          <label for="validationCustom03" class="form-label">City</label>
-          <input type="text" class="form-control" id="validationCustom03" required>
-          <div class="invalid-feedback">Please provide a valid city.</div>
-        </div> -->
-
-
-        <!-- <div class="col-md-3">
-          <label for="validationCustom04" class="form-label">State</label>
-          <select class="form-select" id="validationCustom04" required>
-            <option selected disabled value="">Choose...</option>
-            <option>...</option>
-          </select>
-          <div class="invalid-feedback">Please select a valid state.</div>
-        </div> -->
-        <!-- <div class="col-md-3">
-          <label for="validationCustom05" class="form-label">Zip</label>
-          <input type="text" class="form-control" id="validationCustom05" required>
-          <div class="invalid-feedback">Please provide a valid zip.</div>
-        </div> -->
-        <!-- <div class="col-12">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
-            <label class="form-check-label" for="invalidCheck">
-              Agree to terms and conditions
-            </label>
-            <div class="invalid-feedback">You must agree before submitting.</div>
-          </div>
-        </div> -->
-        <div class="col-12">
-          <button class="btn btn-primary" type="submit">Submit</button>
-        </div>
-      </form><!-- End Custom Styled Validation -->
-    </div>
-  </div>
-</div>
-
-
-
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">{{project.projectname}}</h5>
-
-
-              <table class="table datatable" id="userTable">
-                <thead>
-                  <tr>
-                    <th>Task Name</th>
-                    <th>Priority</th>
-                    <th>From Date</th>
-                    <th>To Date</th>
-                    <th>Status</th>
-                    {% if request.user|in_group:"Superadmin" %}
-
-                    <th>Action</th>
-                    {% endif %}
-                </tr>
-                </thead>
-                <tbody>
-                  {% if tasks %}
-                      {% for task in tasks %}
-                      <tr>
-                        <td>
-                          <a href="{% url 'todo_card_detail_view' task.id %}">
-                              {{ task.taskname }}
-                          </a>
-                      </td>
-                      
-                        
-                       
-                       
-                        <td>
-                          
-                          <span
-                            {% if task.priority == "High" or task.priority == "Urgent" %}
-                            class="text-danger"
-                            {% elif task.priority == "Medium" %}
-                            class="text-primary"
-                        {% elif task.priority == "Low" %}
-                            class="text-secondary"
-                        {% endif %}>
-
-                          {{ task.priority }}</td>
-                        </span>
-
-                          <td>{{ task.from_date }}</td> 
-                          <td>{{ task.to_date }}</td>
-                          <td>
-                            <form method="POST" action="{% url 'card_update_task_status' task.id %}">
+                <!-- Initially hidden card -->
+                <div class="col-lg-12" id="projectCard" style="display: none;">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Task Creation</h5>
+                            <form class="row g-3 needs-validation" method="post" action="{% url 'specificusertask' project.id user.id %}" novalidate>
                                 {% csrf_token %}
-                                <select name="status" onchange="this.className = this.options[this.selectedIndex].className; this.form.submit();" class="form-control 
-                                    {% if task.status == 'Not Started' %}
-                                        text-danger
-                                    {% elif task.status == 'Working' %}
-                                        text-primary
-                                    {% elif task.status == 'Completed' %}
-                                        text-success
+                                <div class="col-md-6">
+                                    <label for="validationCustom01" class="form-label">Task name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="validationCustom01" name="taskname" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="validationPriority" class="form-label">Priority <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="validationPriority" name="priority" required>
+                                        <option selected disabled value="">Choose...</option>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Urgent">Urgent</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select a priority level.</div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="fromDate" name="fromdate" required>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="toDate" class="form-label">To Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="toDate" name="todate" required>
+                                </div>
+
+                                <div class="col-12">
+                                    <button class="btn btn-primary" type="submit">Submit</button>
+                                </div>
+                            </form><!-- End Custom Styled Validation -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.projectname }}</h5>
+
+                        <table class="table datatable" id="userTable">
+                            <thead>
+                                <tr>
+                                    <th>Task Name</th>
+                                    <th>Priority</th>
+                                    <th>From Date</th>
+                                    <th>To Date</th>
+                                    <th>Status</th>
+                                    {% if request.user|in_group:"Superadmin" %}
+                                    <th>Action</th>
                                     {% endif %}
-                                ">
-                                    <option value="Not Started" class="text-danger" {% if task.status == 'Not Started' %}selected{% endif %}>Not Started</option>
-                                    <option value="Working" class="text-primary" {% if task.status == 'Working' %}selected{% endif %}>Working</option>
-                                    <option value="Completed" class="text-success" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
-                                </select>
-                            </form>
-                        </td>
-            
-
-                                             <!-- Edit and Delete Options -->
-                                             {% if request.user|in_group:"Superadmin" %}
-
-<td>
-  <div class="filter">
-      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-       
-          <li>
-              <a class="dropdown-item" href="#" 
-                 data-bs-toggle="modal" 
-                 data-bs-target="" 
-                 data-id="" 
-                 data-projectname="" 
-                 data-taskname="" 
-                 data-priority="" 
-                 data-fromdate="" 
-                 data-todate="">
-                 Edit
-              </a>
-            </li>
-            
-            <li>
-              <a class="dropdown-item delete-link" href="#" data-id="{{ task.id }}" data-projectname="{{ task.project.projectname }}">
-                Delete
-              </a>
-            </li>
-            
-      </ul>
-  </div>
-</td>
-
-{% endif %}
-
-           
-                      </tr>
-
-  
-
-                      {% endfor %}
-                  {% else %}
-                      <tr>
-                          <td colspan="4">No tasks available for this project.</td>
-                      </tr>
-                  {% endif %}
-              </tbody>
-            </table>  
-
-
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tasks %}
+                                    {% for task in tasks %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'todo_card_detail_view' task.id %}">
+                                                {{ task.taskname }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span
+                                                {% if task.priority == "High" or task.priority == "Urgent" %}
+                                                class="text-danger"
+                                                {% elif task.priority == "Medium" %}
+                                                class="text-primary"
+                                                {% elif task.priority == "Low" %}
+                                                class="text-secondary"
+                                                {% endif %}>
+                                                {{ task.priority }}
+                                            </span>
+                                        </td>
+                                        <td>{{ task.from_date }}</td>
+                                        <td>{{ task.to_date }}</td>
+                                        <td>
+                                            <form method="POST" action="{% url 'card_update_task_status' task.id %}">
+                                                {% csrf_token %}
+                                                <select name="status" onchange="this.className = this.options[this.selectedIndex].className; this.form.submit();" class="form-control 
+                                                    {% if task.status == 'Not Started' %}
+                                                        text-danger
+                                                    {% elif task.status == 'Working' %}
+                                                        text-primary
+                                                    {% elif task.status == 'Completed' %}
+                                                        text-success
+                                                    {% endif %}">
+                                                    <option value="Not Started" class="text-danger" {% if task.status == 'Not Started' %}selected{% endif %}>Not Started</option>
+                                                    <option value="Working" class="text-primary" {% if task.status == 'Working' %}selected{% endif %}>Working</option>
+                                                    <option value="Completed" class="text-success" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                        {% if request.user|in_group:"Superadmin" %}
+                                        <td>
+                                            <div class="filter">
+                                                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="" 
+                                                        data-id="" 
+                                                        data-projectname="" 
+                                                        data-taskname="" 
+                                                        data-priority="" 
+                                                        data-fromdate="" 
+                                                        data-todate="">
+                                                        Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item delete-link" href="#" data-id="{{ task.id }}" data-projectname="{{ task.project.projectname }}">
+                                                            Delete
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6">No tasks available for this project.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-          </div>
-
         </div>
-      </div>
     </section>
+</main>
 
-  </main>
   
   <div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
