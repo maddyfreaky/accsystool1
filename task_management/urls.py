@@ -32,7 +32,7 @@ urlpatterns = [
     path('update_status/<int:project_id>/', views.update_status, name='update_status'),
     path('assigned_projects_view/', views.assigned_projects_view, name='assigned_projects_view'),
     path('tasks/', views.task_view, name='task_view'),  # URL to render the tasks view
-    path('update-task-status/', views.update_task_status, name='update_task_status'),
+    path('update-task-status/<int:task_id>/', views.update_task_status, name='update_task_status'),
     path('project/edit/<int:project_id>/', views.edit_project, name='edit_project'),
     path('todo_card_detail_view/<int:task_id>/', views.todo_card_detail_view, name='todo_card_detail_view'),
     path('card_update_task_status/<int:task_id>/', views.card_update_task_status, name='card_update_task_status'),
@@ -49,6 +49,8 @@ urlpatterns = [
     path('all_users_tasks/', views.all_users_tasks, name='all_users_tasks'),
     path('kanban-view/', views.get_tasks_for_kanban_view, name='kanban_view'),
     path('edit-task/', views.edit_task, name='edit_task'),
+    path('add-comment/<int:task_id>/', views.add_comment, name='add_comment'),
+    path('get-comments/<int:task_id>/', views.get_comments, name='get_comments'),
     
     
 ]

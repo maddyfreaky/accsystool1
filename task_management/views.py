@@ -342,20 +342,31 @@ def task_view(request):
     return render(request, 'todolist.html', context)
 
 @csrf_exempt
-def update_task_status(request):
+def update_task_status(request, task_id):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        task_id = data.get('id')
-        new_status = data.get('status')
-
         try:
+            # Parse the request body to get the new status
+            data = json.loads(request.body)
+            new_status = data.get('status')
+
+            # Fetch the task using the Task model
             task = Task.objects.get(id=task_id)
+            
+            # Update the task's status and save it to the database
             task.status = new_status
             task.save()
+
+            # Return a success response
             return JsonResponse({'success': True})
+
         except Task.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Task not found.'})
-    return JsonResponse({'success': False, 'error': 'Invalid request.'})
+            return JsonResponse({'error': 'Task not found'}, status=404)
+        
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # Return an error response if the request method is not POST
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 def edit_project(request, project_id):
     project = get_object_or_404(Project, id=project_id)
@@ -692,3 +703,28 @@ def get_tasks_for_kanban_view(request):
     }
     
     return render(request, 'usercard.html', context)
+
+@csrf_exempt
+def get_comments(request, task_id):
+    comments = Comment.objects.filter(task_id=task_id).values('text', 'comment_timestamp')
+
+    comments_list = [
+        {'text': comment['text'], 'timestamp': comment['comment_timestamp'].strftime('%Y-%m-%d %H:%M:%S')}
+        for comment in comments
+    ]
+
+    return JsonResponse({'success': True, 'comments': comments_list})
+
+
+@csrf_exempt
+def add_comment(request, task_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        comment_text = data.get('comment')
+
+        task = Task.objects.get(id=task_id)
+        new_comment = Comment.objects.create(task=task, text=comment_text)
+        new_comment.save()
+
+        return JsonResponse({'success': True, 'comment': new_comment.text, 'timestamp': new_comment.comment_timestamp.strftime('%Y-%m-%d %H:%M:%S')})
+    return JsonResponse({'success': False, 'message': 'Invalid request'})

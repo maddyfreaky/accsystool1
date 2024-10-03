@@ -8,10 +8,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kanban View</title>
-  
-  <!-- Bootstrap CSS (optional for styling) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+
   <style>
     /* Kanban Board Styles */
     .kanban-board {
@@ -53,6 +50,25 @@
       font-size: 0.9rem;
       color: #666;
     }
+    /* Style for the task container */
+.task-container {
+    border: 2px dashed #ccc; /* Dashed border to indicate a drop area */
+    padding: 10px;
+    min-height: 100px; /* Minimum height for better visibility */
+    transition: background-color 0.3s; /* Smooth background change */
+}
+
+/* Style for empty task containers */
+.task-container.empty {
+    background-color: #f9f9f9; /* Light background for empty containers */
+    color: #aaa; /* Gray text color to indicate no tasks */
+}
+
+/* Style when dragging over the container */
+.task-container.drag-over {
+    background-color: #e0e0e0; /* Light gray background on drag over */
+    border-color: #888; /* Darker border on drag over */
+}
   </style>
 </head>
 <body>
@@ -72,234 +88,326 @@
     <div class="kanban-board">
       
       <!-- To Do Column -->
-<div class="col-xxl-3 col-md-3">
-  <div class="card info-card sales-card">
-    <div class="card-body">
-      <h5 class="card-title d-flex justify-content-between align-items-center">
-        To Do
-        <!-- <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-          <i class="bi bi-plus-circle-fill"></i>
-        </div> -->
-      </h5>
+      <div class="col-xxl-3 col-md-3">
+        <div class="card info-card sales-card">
+          <div class="card-body">
+            <h5 class="card-title d-flex justify-content-between align-items-center">
+              To Do
+            </h5>
 
-      <div class="ps-3 mt-3 task-container" id="todoIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
-        {% for task in todo_tasks_custom %}
-        <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" data-id="{{ task.id }}" data-status="Not Started" style="background-color: #f8f9fa;">
-          <div class="card-body p-2 d-flex justify-content-between align-items-center">
-            <span class="text-dark small pt-2 ps-1">
-              Project: {{ task.project.projectname }} <br>
-              Task: {{ task.taskname }}
-            </span>
-            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-              <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editissueModal">Edit</a></li>
-              <a class="dropdown-item delete-issue" href="#" data-issue-id="{{ task.id }}">Delete</a>
-            </ul>
+            <div class="ps-3 mt-3 task-container" id="todoIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+              {% for task in todo_tasks_custom %}
+              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Not Started" style="background-color: #f8f9fa;">
+                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                  <span class="text-dark small pt-2 ps-1">
+                    Project: {{ task.project.projectname }} <br>
+                    Task: {{ task.taskname }}
+                  </span>
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a>
+    </li>
+</ul>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
           </div>
         </div>
-        {% endfor %}
       </div>
-    </div>
-  </div>
-</div>
 
-<!-- In Progress Column -->
-<div class="col-xxl-4 col-md-4">
-  <div class="card info-card revenue-card">
-    <div class="card-body">
-      <h5 class="card-title d-flex justify-content-between align-items-center">
-        In Progress
-        <!-- <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-          <i class="bi bi-plus-circle-fill"></i>
-        </div> -->
-      </h5>
+      <!-- In Progress Column -->
+      <div class="col-xxl-4 col-md-4">
+        <div class="card info-card revenue-card">
+          <div class="card-body">
+            <h5 class="card-title d-flex justify-content-between align-items-center">
+              In Progress
+            </h5>
 
-      <div class="ps-3 mt-3 task-container" id="progressIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
-        {% for task in in_progress_tasks_custom %}
-        <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" data-id="{{ task.id }}" data-status="Working" style="background-color: #f8f9fa;">
-          <div class="card-body p-2 d-flex justify-content-between align-items-center">
-            <span class="text-dark small pt-2 ps-1">
-              Project: {{ task.project.projectname }} <br>
-              Task: {{ task.taskname }}
-            </span>
-            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-              <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editissueModal">Edit</a></li>
-              <a class="dropdown-item delete-issue" href="#" data-issue-id="{{ task.id }}">Delete</a>
-            </ul>
+            <div class="ps-3 mt-3 task-container" id="progressIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+              {% for task in in_progress_tasks_custom %}
+              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Working" style="background-color: #f8f9fa;">
+                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                  <span class="text-dark small pt-2 ps-1">
+                    Project: {{ task.project.projectname }} <br>
+                    Task: {{ task.taskname }}
+                  </span>
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a>
+    </li>
+</ul>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
           </div>
         </div>
-        {% endfor %}
       </div>
-    </div>
-  </div>
-</div>
 
-<!-- Done Column -->
-<div class="col-xxl-4 col-md-4">
-  <div class="card info-card revenue-card">
-    <div class="card-body">
-      <h5 class="card-title d-flex justify-content-between align-items-center">
-        Done
-        <!-- <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-          <i class="bi bi-plus-circle-fill"></i>
-        </div> -->
-      </h5>
+      <!-- Done Column -->
+      <div class="col-xxl-4 col-md-4">
+        <div class="card info-card revenue-card">
+          <div class="card-body">
+            <h5 class="card-title d-flex justify-content-between align-items-center">
+              Done
+            </h5>
 
-      <div class="ps-3 mt-3 task-container" id="doneIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
-        {% for task in completed_tasks_custom %}
-        <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" data-id="{{ task.id }}" data-status="Completed" style="background-color: #f8f9fa;">
-          <div class="card-body p-2 d-flex justify-content-between align-items-center">
-            <span class="text-dark small pt-2 ps-1">
-              Project: {{ task.project.projectname }} <br>
-              Task: {{ task.taskname }}
-            </span>
-            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-              <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editissueModal">Edit</a></li>
-              <a class="dropdown-item delete-issue" href="#" data-issue-id="{{ task.id }}">Delete</a>
-            </ul>
+            <div class="ps-3 mt-3 task-container" id="doneIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+              {% for task in completed_tasks_custom %}
+              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Completed" style="background-color: #f8f9fa;">
+                <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                  <span class="text-dark small pt-2 ps-1">
+                    Project: {{ task.project.projectname }} <br>
+                    Task: {{ task.taskname }}
+                  </span>
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+<ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a>
+    </li>
+</ul>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
           </div>
         </div>
-        {% endfor %}
       </div>
-    </div>
-  </div>
-</div>
 
-
-      
     </div>
   </section>
 </main>
 
-<!-- Example task entry with edit option
-<div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" data-id="{{ entry.id }}" data-status="{{ entry.status }}" style="background-color: #f8f9fa;">
-  <div class="card-body p-2 d-flex justify-content-between align-items-center">
-      <span class="text-dark small pt-2 ps-1">{{ entry.taskname }}</span>
-      <a class="icon" href="#" data-bs-toggle="modal" data-bs-target="#editTaskModal" onclick="setEditModalData({{ entry.id }}, '{{ entry.taskname }}', '{{ entry.status }}')">
-          <i class="bi bi-three-dots"></i>
-      </a>
-  </div>
-</div> -->
-
-<!-- Edit Task Modal -->
-<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-              <form id="editTaskForm" method="post" action="{% url 'edit_task' %}">
-                  {% csrf_token %}
-                  <input type="hidden" name="task_id" id="editTaskId">
-                  
-                  <div class="mb-3">
-                      <label for="taskName" class="form-label">Task Name</label>
-                      <input type="text" class="form-control" id="taskName" name="taskname" required>
-                  </div>
-                  <div class="mb-3">
-                      <label for="taskStatus" class="form-label">Task Status</label>
-                      <select class="form-control" id="taskStatus" name="status">
-                          <option value="Not Started">Not Started</option>
-                          <option value="Working">Working</option>
-                          <option value="Completed">Completed</option>
-                      </select>
-                  </div>
-                  
-                  <button type="submit" class="btn btn-primary">Save Changes</button>
-              </form>
-          </div>
+<!-- Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"> <!-- Make it larger to fit previous comments -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="commentModalLabel">Comments</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <div class="modal-body">
+        <!-- Previous Comments -->
+        <div id="previousComments">
+          <h6>Previous Comments:</h6>
+          <div id="commentsList" class="mb-3">
+            <!-- Comments will be appended here -->
+            <p>No comments yet.</p> <!-- Default message if there are no comments -->
+          </div>
+        </div>
+
+        <!-- Comment Textarea -->
+        <textarea id="commentText" class="form-control" rows="4" placeholder="Enter your comment here..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="submitComment()">Add Comment</button>
+      </div>
+    </div>
   </div>
 </div>
 
+
 <script>
-  function setEditModalData(id, taskname, status) {
-      document.getElementById('editTaskId').value = id;
-      document.getElementById('taskName').value = taskname;
-      document.getElementById('taskStatus').value = status;
-  }
+  // Fetch and display comments when modal is opened
+  
+  document.getElementById('commentModal').addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;  // Button that triggered the modal
+    const taskId = button.getAttribute('data-task-id');  // Extract the task ID from the data-task-id attribute
+
+    // Store the taskId globally or in a hidden field inside the modal
+    document.getElementById('commentModal').setAttribute('data-task-id', taskId);
+
+    // Fetch comments for the selected task
+    fetch(`/get-comments/${taskId}/`)
+      .then(response => response.json())
+      .then(data => {
+        const commentsList = document.getElementById('commentsList');
+        commentsList.innerHTML = '';  // Clear the list
+
+        if (data.success && data.comments.length > 0) {
+          data.comments.forEach(comment => {
+            const commentElement = document.createElement('p');
+            commentElement.innerHTML = `${comment.text} <small>(${comment.timestamp})</small>`;
+            commentsList.appendChild(commentElement);
+          });
+        } else {
+          commentsList.innerHTML = '<p>No comments yet.</p>';
+        }
+      })
+      .catch(error => console.error('Error:', error));
+});
+
+
+  // Submit a new comment via Ajax
+  function submitComment() {
+    const taskId = document.getElementById('commentModal').getAttribute('data-task-id');  // Get the task ID from the modal
+
+    const comment = document.getElementById('commentText').value;
+
+    if (!comment) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    fetch(`/add-comment/${taskId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: JSON.stringify({ comment: comment })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Append the new comment to the previous comments section
+        const commentSection = document.getElementById('commentsList');
+        const newComment = document.createElement('p');
+        newComment.innerHTML = `${data.comment} <small>(${data.timestamp})</small>`;
+        commentSection.appendChild(newComment);
+
+        // Clear the comment input
+        document.getElementById('commentText').value = '';
+      } else {
+        alert("Failed to add comment: " + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
+function viewComments(event) {
+    event.preventDefault();  // Prevent the default link behavior
+    const taskId = event.target.getAttribute('data-task-id');  // Get the task ID from the clicked element
+
+    // Fetch the comments from the backend
+    fetch(`/get-comments/${taskId}/`)
+      .then(response => response.json())
+      .then(data => {
+        const commentsList = document.getElementById('commentsList');
+        commentsList.innerHTML = '';  // Clear the list
+
+        if (data.success && data.comments.length > 0) {
+          data.comments.forEach(comment => {
+            const commentElement = document.createElement('p');
+            commentElement.innerHTML = `${comment.text} <small>(${comment.timestamp})</small>`;
+            commentsList.appendChild(commentElement);
+          });
+        } else {
+          commentsList.innerHTML = '<p>No comments yet.</p>';
+        }
+
+        // Open the comment modal to display the comments
+        const commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
+        commentModal.show();
+      })
+      .catch(error => console.error('Error:', error));
+}
+
 </script>
 
-<!-- Scripts -->
+
+
+
 <script>
   // Drag and Drop Functions
   
   // Allow the drop event to occur on valid drop targets
   function allowDrop(ev) {
-    ev.preventDefault();  // Prevent default to allow drop
+      ev.preventDefault();  // Prevent default to allow drop
+      // Add the 'drag-over' class to indicate a valid drop zone
+      const targetContainer = ev.target.closest('.task-container');
+      if (targetContainer) {
+          targetContainer.classList.add('drag-over');
+      }
   }
   
   // Start dragging the task
   function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id);  // Set dragged task ID
+      ev.dataTransfer.setData("text", ev.target.id);  // Set dragged task ID
   }
   
   // Handle the drop event
   function drop(ev) {
-    ev.preventDefault();
-    
-    // Get the dragged task element's ID
-    var data = ev.dataTransfer.getData("text");
-    
-    // Get the drop target container (ensure it's a valid drop container)
-    var targetContainer = ev.target.closest('.task-container');
+      ev.preventDefault();
   
-    if (targetContainer) {
-      // Append the dragged element to the new container
-      targetContainer.appendChild(document.getElementById(data));
+      // Remove the 'drag-over' class from all containers
+      const containers = document.querySelectorAll('.task-container');
+      containers.forEach(container => {
+          container.classList.remove('drag-over');
+      });
   
-      // Get the task ID from the element's ID (assuming it is of the form 'task-{id}')
-      let taskId = data.split('-')[1];
-      
-      // Determine new status based on target container's ID
-      let newStatus = targetContainer.id === 'todoIssues' ? 'Not Started' :
-                      targetContainer.id === 'progressIssues' ? 'Working' : 'Completed';
+      // Get the dragged task element's ID
+      var data = ev.dataTransfer.getData("text");
   
-      // Call the function to update the task status via Ajax
-      updateTaskStatus(taskId, newStatus);
-    }
+      // Get the drop target container (ensure it's a valid drop container)
+      var targetContainer = ev.target.closest('.task-container') || ev.target;
+  
+      // Only proceed if the drop target is a valid container
+      if (targetContainer && targetContainer.classList.contains('task-container')) {
+          // Append the dragged element to the new container
+          targetContainer.appendChild(document.getElementById(data));
+  
+          // Get the task ID from the element's ID
+          let taskId = document.getElementById(data).getAttribute('data-id');
+          
+          // Determine new status based on target container's ID
+          let newStatus = targetContainer.id === 'todoIssues' ? 'Not Started' :
+                          targetContainer.id === 'progressIssues' ? 'Working' : 'Completed';
+  
+          // Call the function to update the task status via Ajax
+          updateTaskStatus(taskId, newStatus);
+      }
   }
   
   // Function to update task status via Ajax
   function updateTaskStatus(taskId, newStatus) {
-    fetch("/update-task-status/" + taskId + "/", {  // Use the correct URL pattern for updating the task
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"  // Ensure CSRF token is included for security
-      },
-      body: JSON.stringify({ status: newStatus })  // Send status update as JSON
-    })
-    .then(response => {
-      if (response.ok) {
-        console.log("Task status updated successfully!");
-        return response.json();
-      } else {
-        console.log("Failed to update task status.");
-      }
-    })
-    .then(data => {
-      if (data && data.success) {
-        console.log("Status successfully updated on server.");
-        // Stay on the same page or you can reload it using the line below if you want.
-        // location.reload(); 
-      }
-    })
-    .catch(error => console.error("Error:", error));
+      fetch("/update-task-status/" + taskId + "/", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token }}"  // Ensure CSRF token is included for security
+          },
+          body: JSON.stringify({ status: newStatus })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              console.log("Task status updated successfully!");
+          } else {
+              console.error("Failed to update task status: " + data.message);
+          }
+      })
+      .catch(error => console.error("Error:", error));
   }
-</script>
-
   
-
-<!-- Bootstrap JS (optional for modals) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
+  // Attach event listeners to all containers and tasks on page load
+  document.addEventListener('DOMContentLoaded', function () {
+      // Get all task containers
+      const containers = document.querySelectorAll('.task-container');
+  
+      // Attach event listeners to each container
+      containers.forEach(container => {
+          container.addEventListener('dragover', allowDrop);
+          container.addEventListener('drop', drop);
+          // Also remove the drag-over class when not dragging
+          container.addEventListener('dragleave', function() {
+              container.classList.remove('drag-over');
+          });
+      });
+  
+      // Get all tasks and make them draggable
+      const tasks = document.querySelectorAll('.task-item');
+      tasks.forEach(task => {
+          task.setAttribute('draggable', true);
+          task.addEventListener('dragstart', drag);
+      });
+  });
+  </script>
+  
 </body>
 </html>
-
 
 {% endblock content %}

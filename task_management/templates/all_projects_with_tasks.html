@@ -26,22 +26,23 @@
                                 <a href="{% url 'all_users_tasks' %}" class="btn btn-primary">All Tasks</a>
                             {% endif %}
                         </div>
-                        
+                        <div class="table-responsive">
                         <table class="table datatable" id="userTable">
                             <thead>
-                                <tr>
-                                    <th>Project Name</th>
-                                    <th>Task Name</th>
+                                <tr class="text-nowrap">
+                                    <th class="text-nowrap">Project Name</th>
+                                    <th class="text-nowrap">Task Name</th>
                                     <th>Priority</th>
                                     <th>Start Date</th>
                                     <th>End Date</th>
+                                    <th>Description</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for entry in user_tasks %}
                                     {% for task in entry.tasks %}
-                                        <tr>
+                                        <tr class="text-nowrap">
                                             <td>{{ entry.project.projectname }}</td>
                                             <td>{{ task.taskname }}</td>
                                             <td>
@@ -51,6 +52,12 @@
                                             </td>
                                             <td>{{ task.from_date }}</td>
                                             <td>{{ task.to_date }}</td>
+                                            <td>
+                                                {{ task.description|slice:":6" }}... 
+                                                <a href="#" class="read-more" data-bs-toggle="modal" data-bs-target="#descriptionModal" data-description="{{ task.description }}">
+                                                    Read More
+                                                </a>
+                                            </td>
                                             <td>
                                                 <form method="POST" action="{% url 'card_update_task_status' task.id %}">
                                                     {% csrf_token %}
@@ -72,10 +79,42 @@
                             </tbody>
                         </table>
                     </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 </main>
+<!-- Modal for Full Description -->
+<div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="descriptionModalLabel">Full Description</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="fullDescription"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const readMoreLinks = document.querySelectorAll('.read-more');
+  
+      readMoreLinks.forEach(link => {
+        link.addEventListener('click', function () {
+          const description = this.getAttribute('data-description');  // Get the full description from data attribute
+          const descriptionModal = document.getElementById('fullDescription');
+          descriptionModal.textContent = description;  // Set the modal content
+        });
+      });
+    });
+  </script>
 
 {% endblock content %}

@@ -101,7 +101,6 @@ class Task(models.Model):
     # Relationships
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
-
     def __str__(self):
         return f"{self.taskname} - {self.priority}"
 
@@ -145,3 +144,11 @@ class DeletedTask(models.Model):
 
     def __str__(self):
         return f"Deleted Task: {self.taskname} - {self.priority}"
+
+class Comment(models.Model):
+    task = models.ForeignKey(Task, related_name='comments', on_delete=models.CASCADE)
+    text = models.TextField()
+    comment_timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"Comment on {self.task.title} at {self.comment_timestamp}"
