@@ -2,22 +2,13 @@
 {% load static %}
 
 {% block content %}
-
-
 <body>
-
- 
-
- 
-
   <main id="main" class="main">
-
     <div class="pagetitle">
       <h1>All Tasks</h1>
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
-          <!-- <li class="breadcrumb-item">Tables</li> -->
           <li class="breadcrumb-item active">All Tasks</li>
         </ol>
       </nav>
@@ -26,79 +17,152 @@
     <section class="section">
       <div class="row">
         <div class="col-lg-12">
-
           <div class="card">
             <div class="card-body">
-
-                    <h5 class="card-title">All Tasks List</h5>
-
-                    
-                   
-
-                                
-                
-              
-
- 
-
-             
-             
+              <h5 class="card-title">All Tasks List</h5>
               <table class="table datatable" id="userTable">
                 <thead>
-                    <tr>
-                      <th>Projectname</th>
-                      <th>Task name</th>
-
-                      <th>Priority</th>
-                      <th>Assigned To</th> <!-- New column for the user working on the task -->
-
-
-                     
-
-                      <th>Startdate</th>
-                      <th>Enddate</th>
-
-                     
-                    </tr>
+                  <tr>
+                    <th>Projectname</th>
+                    <th>Task name</th>
+                    <th>Priority</th>
+                    <th>Assigned To</th> <!-- New column for the user working on the task -->
+                    <th>Startdate</th>
+                    <th>Enddate</th>
+                    <th>Add Comment</th> <!-- Column for the Add Comment button -->
+                  </tr>
                 </thead>
                 <tbody>
                   {% for task in tasks %}
-                      <tr>
-                          <td>{{ task.project.projectname }}</td> <!-- Project name -->
-                          <td>{{ task.taskname }}</td> <!-- Task name -->
-                          <td>{{ task.priority }}</td> <!-- Task priority -->
-                          <td>{{ task.user.username }}</td> <!-- User who assigned the project -->
-                          <td>{{ task.from_date }}</td> <!-- Start date -->
-                          <td>{{ task.to_date }}</td> <!-- End date -->
-                      </tr>
+                    <tr>
+                      <td>{{ task.project.projectname }}</td> <!-- Project name -->
+                      <td>{{ task.taskname }}</td> <!-- Task name -->
+                      <td>{{ task.priority }}</td> <!-- Task priority -->
+                      <td>{{ task.user.username }}</td> <!-- User who assigned the project -->
+                      <td>{{ task.from_date }}</td> <!-- Start date -->
+                      <td>{{ task.to_date }}</td> <!-- End date -->
+                      <td>
+                        <!-- Add Comment Button (Opens modal) -->
+                        <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                           data-bs-target="#commentModal" 
+                           data-task-id="{{ task.id }}">
+                          Add Comment
+                        </a>
+                      </td>
+                    </tr>
                   {% empty %}
-                     
+                    <tr>
+                      <td colspan="7">No tasks available.</td>
+                    </tr>
                   {% endfor %}
-              </tbody>
+                </tbody>
               </table>
-              
-
-
-
-
-
             </div>
           </div>
-
         </div>
       </div>
     </section>
-
   </main>
-  
+
+  <!-- Include the same comment modal here -->
+ <!-- Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="commentModalLabel">Comments</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Previous Comments -->
+        <div id="previousComments">
+          <h6>Previous Comments:</h6>
+          <div id="commentsList" class="mb-3">
+            <!-- Comments will be appended here -->
+            <p>No comments yet.</p> <!-- Default message if there are no comments -->
+          </div>
+        </div>
+
+        <!-- Comment Textarea -->
+        <textarea id="commentText" class="form-control" rows="4" placeholder="Enter your comment here..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="submitComment()">Add Comment</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 
+<script>
+  // Fetch and display comments when modal is opened
+document.getElementById('commentModal').addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;  // Button that triggered the modal
+    const taskId = button.getAttribute('data-task-id');  // Extract the task ID from the data-task-id attribute
 
+    // Store the taskId globally or in a hidden field inside the modal
+    document.getElementById('commentModal').setAttribute('data-task-id', taskId);
 
-  
+    // Fetch comments for the selected task
+    fetch(`/get-comments/${taskId}/`)
+      .then(response => response.json())
+      .then(data => {
+        const commentsList = document.getElementById('commentsList');
+        commentsList.innerHTML = '';  // Clear the list
 
+        if (data.success && data.comments.length > 0) {
+          data.comments.forEach(comment => {
+            const commentElement = document.createElement('p');
+            commentElement.innerHTML = `<strong>${comment.username}</strong>: ${comment.text} <small>(${comment.timestamp})</small>`;
+            commentsList.appendChild(commentElement);
+          });
+        } else {
+          commentsList.innerHTML = '<p>No comments yet.</p>';
+        }
+      })
+      .catch(error => console.error('Error:', error));
+});
+
+// Submit a new comment via Ajax
+function submitComment() {
+    const taskId = document.getElementById('commentModal').getAttribute('data-task-id');  // Get the task ID from the modal
+    const comment = document.getElementById('commentText').value;
+
+    if (!comment) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    fetch(`/add-comment/${taskId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: JSON.stringify({ comment: comment })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Append the new comment to the previous comments section
+        const commentSection = document.getElementById('commentsList');
+        const newComment = document.createElement('p');
+        newComment.innerHTML = `<strong>${data.username}</strong>: ${data.comment} <small>(${data.timestamp})</small>`;
+        commentSection.appendChild(newComment);
+
+        // Clear the comment input
+        document.getElementById('commentText').value = '';
+      } else {
+        alert("Failed to add comment: " + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
+</script>
 </body>
-
-
 {% endblock content %}

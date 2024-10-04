@@ -149,6 +149,7 @@ class Comment(models.Model):
     task = models.ForeignKey(Task, related_name='comments', on_delete=models.CASCADE)
     text = models.TextField()
     comment_timestamp = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')  # Add user field
 
     def __str__(self):
-        return f"Comment on {self.task.title} at {self.comment_timestamp}"
+        return f"Comment on {self.task.title} by {self.user.username} at {self.comment_timestamp}"

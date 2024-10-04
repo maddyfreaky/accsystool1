@@ -706,15 +706,18 @@ def get_tasks_for_kanban_view(request):
 
 @csrf_exempt
 def get_comments(request, task_id):
-    comments = Comment.objects.filter(task_id=task_id).values('text', 'comment_timestamp')
+    comments = Comment.objects.filter(task_id=task_id).values('text', 'comment_timestamp', 'user__username')
 
     comments_list = [
-        {'text': comment['text'], 'timestamp': comment['comment_timestamp'].strftime('%Y-%m-%d %H:%M:%S')}
+        {
+            'text': comment['text'],
+            'timestamp': timezone.localtime(comment['comment_timestamp']).strftime('%Y-%m-%d %H:%M:%S'),
+            'username': comment['user__username']  # Include the username
+        }
         for comment in comments
     ]
 
     return JsonResponse({'success': True, 'comments': comments_list})
-
 
 @csrf_exempt
 def add_comment(request, task_id):
@@ -723,8 +726,17 @@ def add_comment(request, task_id):
         comment_text = data.get('comment')
 
         task = Task.objects.get(id=task_id)
-        new_comment = Comment.objects.create(task=task, text=comment_text)
-        new_comment.save()
 
-        return JsonResponse({'success': True, 'comment': new_comment.text, 'timestamp': new_comment.comment_timestamp.strftime('%Y-%m-%d %H:%M:%S')})
+        # Get the logged-in user
+        user = request.user
+
+        # Create the new comment and associate it with the user
+        new_comment = Comment.objects.create(task=task, text=comment_text, user=user)
+
+        return JsonResponse({
+            'success': True,
+            'comment': new_comment.text, 
+            'timestamp': new_comment.comment_timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            'username': new_comment.user.username  # Return username
+        })
     return JsonResponse({'success': False, 'message': 'Invalid request'})

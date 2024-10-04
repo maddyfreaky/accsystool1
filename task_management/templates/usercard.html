@@ -180,7 +180,7 @@
 
 <!-- Comment Modal -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg"> <!-- Make it larger to fit previous comments -->
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="commentModalLabel">Comments</h5>
@@ -208,10 +208,10 @@
 </div>
 
 
+
 <script>
   // Fetch and display comments when modal is opened
-  
-  document.getElementById('commentModal').addEventListener('show.bs.modal', function(event) {
+document.getElementById('commentModal').addEventListener('show.bs.modal', function(event) {
     const button = event.relatedTarget;  // Button that triggered the modal
     const taskId = button.getAttribute('data-task-id');  // Extract the task ID from the data-task-id attribute
 
@@ -228,7 +228,7 @@
         if (data.success && data.comments.length > 0) {
           data.comments.forEach(comment => {
             const commentElement = document.createElement('p');
-            commentElement.innerHTML = `${comment.text} <small>(${comment.timestamp})</small>`;
+            commentElement.innerHTML = `<strong>${comment.username}</strong>: ${comment.text} <small>(${comment.timestamp})</small>`;
             commentsList.appendChild(commentElement);
           });
         } else {
@@ -238,11 +238,9 @@
       .catch(error => console.error('Error:', error));
 });
 
-
-  // Submit a new comment via Ajax
-  function submitComment() {
+// Submit a new comment via Ajax
+function submitComment() {
     const taskId = document.getElementById('commentModal').getAttribute('data-task-id');  // Get the task ID from the modal
-
     const comment = document.getElementById('commentText').value;
 
     if (!comment) {
@@ -264,7 +262,7 @@
         // Append the new comment to the previous comments section
         const commentSection = document.getElementById('commentsList');
         const newComment = document.createElement('p');
-        newComment.innerHTML = `${data.comment} <small>(${data.timestamp})</small>`;
+        newComment.innerHTML = `<strong>${data.username}</strong>: ${data.comment} <small>(${data.timestamp})</small>`;
         commentSection.appendChild(newComment);
 
         // Clear the comment input
@@ -276,34 +274,6 @@
     .catch(error => {
       console.error('Error:', error);
     });
-}
-
-function viewComments(event) {
-    event.preventDefault();  // Prevent the default link behavior
-    const taskId = event.target.getAttribute('data-task-id');  // Get the task ID from the clicked element
-
-    // Fetch the comments from the backend
-    fetch(`/get-comments/${taskId}/`)
-      .then(response => response.json())
-      .then(data => {
-        const commentsList = document.getElementById('commentsList');
-        commentsList.innerHTML = '';  // Clear the list
-
-        if (data.success && data.comments.length > 0) {
-          data.comments.forEach(comment => {
-            const commentElement = document.createElement('p');
-            commentElement.innerHTML = `${comment.text} <small>(${comment.timestamp})</small>`;
-            commentsList.appendChild(commentElement);
-          });
-        } else {
-          commentsList.innerHTML = '<p>No comments yet.</p>';
-        }
-
-        // Open the comment modal to display the comments
-        const commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
-        commentModal.show();
-      })
-      .catch(error => console.error('Error:', error));
 }
 
 </script>
