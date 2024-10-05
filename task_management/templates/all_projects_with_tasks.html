@@ -61,7 +61,7 @@
                                             <td>
                                                 <form method="POST" action="{% url 'card_update_task_status' task.id %}">
                                                     {% csrf_token %}
-                                                    <select name="status" onchange="this.className = this.options[this.selectedIndex].className; this.form.submit();" class="form-control 
+                                                    <select style="width: 120px;" name="status" onchange="this.className = this.options[this.selectedIndex].className; this.form.submit();" class="form-control form-control-sm
                                                         {% if task.status == 'Not Started' %}text-danger{% elif task.status == 'Working' %}text-primary{% elif task.status == 'Completed' %}text-success{% endif %}">
                                                         <option value="Not Started" class="text-danger" {% if task.status == 'Not Started' %}selected{% endif %}>Not Started</option>
                                                         <option value="Working" class="text-primary" {% if task.status == 'Working' %}selected{% endif %}>Working</option>

@@ -159,17 +159,13 @@
                             </span>
                         </td> 
                         
-                        <td class="
-                        {% if project.status == 'working' %}text-primary
-                        {% elif project.status == 'pending_review' %}text-secondary
-                        {% elif project.status == 'overdue' %}text-danger
-                        {% elif project.status == 'completed' %}text-success
-                        {% elif project.status == 'cancelled' %}text-warning
-                        {% elif project.status == 'not_started' %}text-info
-                        {% endif %}
-                    ">
-                        {{ project.status }}
-                    </td>
+                        <td>
+                          {% if project.all_tasks_completed %}
+                              <span class="badge bg-success">Completed</span>
+                          {% else %}
+                              <span class="badge bg-warning">Pending</span>
+                          {% endif %}
+                        </td>
                     
                         
                       <!-- Edit and Delete Options -->

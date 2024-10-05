@@ -99,32 +99,14 @@
               </span>
           </td>
 
-          <!-- Display the project status with a dropdown to update it -->
-          <td>
-              <form method="post" action="{% url 'update_status' project.id %}" class="d-inline">
-                  {% csrf_token %}
-                  <div class="dropdown">
-                      <button class="btn 
-                          {% if project.status == 'working' %}btn-primary{% elif project.status == 'pending_review' %}btn-secondary
-                          {% elif project.status == 'overdue' %}btn-danger{% elif project.status == 'completed' %}btn-success
-                          {% elif project.status == 'cancelled' %}btn-warning{% elif project.status == 'not_started' %}btn-info
-                          {% endif %} btn-sm dropdown-toggle" 
-                          type="button" id="dropdownMenuButton{{ project.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                          {{ project.get_status_display }}
-                      </button>
-                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ project.id }}">
-                          {% for value, display in status_choices %}
-                          <li>
-                              <button class="dropdown-item" type="submit" name="status" value="{{ value }}">
-                                  {{ display }}
-                              </button>
-                          </li>
-                          {% endfor %}
-                      </ul>
-                  </div>
-              </form>
-          </td>
-
+          <!-- Display the project status dynamically based on tasks' statuses -->
+<td>
+  {% if project.all_tasks_completed %}
+      <span class="badge bg-success">Completed</span>
+  {% else %}
+      <span class="badge bg-warning">Pending</span>
+  {% endif %}
+</td>
           <!-- Show actions if the user is in Superadmin group -->
           {% if request.user|in_group:"Superadmin" %}
           <td>

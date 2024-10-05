@@ -30,8 +30,22 @@ def todlistpage(request):
     # Retrieve projects that have tasks assigned to the logged-in user
     projects = Project.objects.filter(tasks__user=request.user).distinct().order_by('-created_at')
 
-    # Status choices for dropdown display
-    status_choices = Project.STATUS_CHOICES
+    # Iterate through the projects and check the status of tasks
+    for project in projects:
+        # Check if all tasks for this project are completed
+        if project.all_tasks_completed():
+            # Update the project status to 'Completed' if all tasks are completed
+            if project.status != 'completed':
+                project.status = 'completed'
+                project.save()  # Save the updated status
+        else:
+            # Set project status to 'Pending' if not all tasks are completed
+            if project.status != 'pending_review':
+                project.status = 'pending_review'
+                project.save()
+
+    # Only show 'Pending' and 'Completed' as status choices for display purposes
+    status_choices = [('pending_review', 'Pending'), ('completed', 'Completed')]
 
     return render(request, 'todopage.html', {'projects': projects, 'status_choices': status_choices})
 
@@ -424,9 +438,17 @@ def specific_user_tasks_view(request, project_id):
     # Retrieve tasks for this project that are assigned to the logged-in user
     tasks = Task.objects.filter(project=project, user=request.user)
 
+    # Filter out child tasks if their parent task's status is not "Completed"
+    filtered_tasks = []
+    for task in tasks:
+        if not task.is_child:  # If the task is not a child, add it
+            filtered_tasks.append(task)
+        elif task.is_child and task.parent_task.status == 'Completed':  # Add child tasks only if parent is completed
+            filtered_tasks.append(task)
+
     context = {
         'project': project,
-        'tasks': tasks
+        'tasks': filtered_tasks
     }
 
     return render(request, 'specific_user_task.html', context)
@@ -465,8 +487,17 @@ def specific_user_task_view_task_mgt(request, project_id, user_id):
 def task_detail(request, project_id, user_id):
     project = Project.objects.get(id=project_id)
     selected_user = User.objects.get(id=user_id)
-    tasks = Task.objects.filter(project=project, user=selected_user)  # Fetch tasks for specific user
-    return render(request, 'task_detail.html', {'tasks': tasks, 'selected_project': project, 'user': selected_user})
+    tasks = Task.objects.filter(project=project, user=selected_user)  # Fetch tasks for the specific user
+
+    # Fetch all tasks related to this project for parent task dropdown
+    all_tasks = Task.objects.filter(project=project)
+
+    return render(request, 'task_detail.html', {
+        'tasks': tasks,
+        'selected_project': project,
+        'user': selected_user,
+        'all_tasks': all_tasks  # Passing all tasks for parent task selection
+    })
 
 
 def create_task(request, project_id, user_id):
@@ -480,18 +511,28 @@ def create_task(request, project_id, user_id):
         to_date = request.POST.get('todate')
         description = request.POST.get('description')  # Get description from form
 
+        is_child = request.POST.get('is_child') == 'on'  # Check if "Is Child" checkbox is selected
+        parent_task_id = request.POST.get('parent_task')  # Get the parent task ID if "Is Child" is checked
+
         # Create the task with the specific project and user
-        Task.objects.create(
+        task = Task.objects.create(
             taskname=taskname,
             priority=priority,
             from_date=from_date,
             to_date=to_date,
             project=project,
             user=user,
-            description=description,  # Save the description
+            description=description,
+            is_child=is_child  # Save whether this task is a child task
         )
 
-        return redirect('task_detail', project_id=project.id, user_id=user.id)    
+        # If the task is a child and parent task ID is provided, link the parent task
+        if is_child and parent_task_id:
+            parent_task = Task.objects.get(id=parent_task_id)
+            task.parent_task = parent_task
+            task.save()
+
+        return redirect('task_detail', project_id=project.id, user_id=user.id)
 @login_required
 def delete_task(request, task_id):
     if request.method == 'POST':  # Only allow POST request for deletion
@@ -595,7 +636,7 @@ def update_task(request, task_id):
 
 def all_projects_with_tasks(request):
     print("Fetching tasks for the user")
-    
+
     if request.user.is_authenticated:
         # Fetch all projects (common to all users)
         projects = Project.objects.all().order_by('-created_at')
@@ -604,14 +645,23 @@ def all_projects_with_tasks(request):
 
         # Iterate over each project to get tasks specific to the logged-in user
         for project in projects:
-            # Filter tasks for the logged-in user only
+            # Filter tasks for the logged-in user
             tasks = project.tasks.filter(user=request.user)
-            if tasks.exists():
+
+            # Filter out child tasks if their parent is not completed
+            filtered_tasks = []
+            for task in tasks:
+                if not task.is_child:  # If the task is not a child, add it
+                    filtered_tasks.append(task)
+                elif task.is_child and task.parent_task.status == 'Completed':  # Add child tasks only if parent is completed
+                    filtered_tasks.append(task)
+
+            if filtered_tasks:  # Add only if there are tasks to display after filtering
                 user_tasks.append({
                     'project': project,
-                    'tasks': tasks
+                    'tasks': filtered_tasks
                 })
-            print(f"Tasks for {project.projectname} assigned to {request.user.username}: {tasks}")
+            print(f"Tasks for {project.projectname} assigned to {request.user.username}: {filtered_tasks}")
 
         # Pass the user's tasks and projects to the template
         context = {
@@ -692,9 +742,24 @@ def get_tasks_for_kanban_view(request):
     user = request.user  # Get the logged-in user
     
     # Filter tasks based on the logged-in user
-    todo_tasks_custom = Task.objects.filter(user=user, status='Not Started')
-    in_progress_tasks_custom = Task.objects.filter(user=user, status='Working')
-    completed_tasks_custom = Task.objects.filter(user=user, status='Completed')
+    todo_tasks = Task.objects.filter(user=user, status='Not Started')
+    in_progress_tasks = Task.objects.filter(user=user, status='Working')
+    completed_tasks = Task.objects.filter(user=user, status='Completed')
+    
+    # Filter logic to exclude child tasks unless their parent is completed
+    def filter_child_tasks(tasks):
+        filtered_tasks = []
+        for task in tasks:
+            if not task.is_child:  # If not a child task, include it
+                filtered_tasks.append(task)
+            elif task.is_child and task.parent_task.status == 'Completed':  # Include if parent task is completed
+                filtered_tasks.append(task)
+        return filtered_tasks
+
+    # Apply the filtering to each task list
+    todo_tasks_custom = filter_child_tasks(todo_tasks)
+    in_progress_tasks_custom = filter_child_tasks(in_progress_tasks)
+    completed_tasks_custom = filter_child_tasks(completed_tasks)
     
     context = {
         'todo_tasks_custom': todo_tasks_custom,

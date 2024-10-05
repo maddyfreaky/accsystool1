@@ -41,80 +41,79 @@
 
 
       <form class="row g-3 needs-validation" method="post" action="{% url 'create_task' selected_project.id user.id %}" novalidate>
-        <!-- Form fields -->
-         {% csrf_token %}
-        <div class="col-md-6">
-          <label for="validationCustom01" class="form-label">Task name <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" id="validationCustom01" name="taskname" required>
-          <!-- <div class="valid-feedback">Enter the Task name</div> -->
-        </div>
-
-     
-
+        {% csrf_token %}
         
-<div class="col-md-6">
-    <label for="validationPriority" class="form-label">Priority <span class="text-danger">*</span></label>
-    <select class="form-select" id="validationPriority" name="priority" required>
-      <option selected disabled value="">Choose...</option>
-      <option value="Low">Low</option>
-      <option value="Medium">Medium</option>
-      <option value="High">High</option>
-      <option value="Urgent">Urgent</option>
-    </select>
-    <div class="invalid-feedback">Please select a priority level.</div>
-  </div>
-
-  <div class="col-md-6">
-    <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
-    <input type="date" class="form-control" id="fromDate" name="fromdate" required>
-    <div class="invalid-feedback">Please select a valid start date.</div>
-  </div>
-  
-  <div class="col-md-6">
-    <label for="toDate" class="form-label">To Date <span class="text-danger">*</span></label>
-    <input type="date" class="form-control" id="toDate" name="todate" required>
-    <div class="invalid-feedback">Please select a valid end date.</div>
-  </div>
-
-
-        <!-- <div class="col-md-6">
-          <label for="validationCustom03" class="form-label">City</label>
-          <input type="text" class="form-control" id="validationCustom03" required>
-          <div class="invalid-feedback">Please provide a valid city.</div>
-        </div> -->
-
-
-        <!-- <div class="col-md-3">
-          <label for="validationCustom04" class="form-label">State</label>
-          <select class="form-select" id="validationCustom04" required>
-            <option selected disabled value="">Choose...</option>
-            <option>...</option>
-          </select>
-          <div class="invalid-feedback">Please select a valid state.</div>
-        </div> -->
-        <!-- <div class="col-md-3">
-          <label for="validationCustom05" class="form-label">Zip</label>
-          <input type="text" class="form-control" id="validationCustom05" required>
-          <div class="invalid-feedback">Please provide a valid zip.</div>
-        </div> -->
-        <!-- <div class="col-12">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
-            <label class="form-check-label" for="invalidCheck">
-              Agree to terms and conditions
-            </label>
-            <div class="invalid-feedback">You must agree before submitting.</div>
-          </div>
-        </div> -->
-        <div class="col-md-12">
-          <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
-          <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-          <div class="invalid-feedback">Please enter a description for the task.</div>
-      </div>
-        <div class="col-12">
-          <button class="btn btn-primary" type="submit">Assign</button>
+        <div class="col-md-6">
+            <label for="taskname" class="form-label">Task name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="taskname" name="taskname" required>
         </div>
-      </form><!-- End Custom Styled Validation -->
+    
+        <div class="col-md-6">
+            <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+            <select class="form-select" id="priority" name="priority" required>
+                <option selected disabled value="">Choose...</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+            <div class="invalid-feedback">Please select a priority level.</div>
+        </div>
+    
+        <div class="col-md-6">
+            <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="fromDate" name="fromdate" required>
+        </div>
+    
+        <div class="col-md-6">
+            <label for="toDate" class="form-label">To Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="toDate" name="todate" required>
+        </div>
+    
+        <div class="col-md-12">
+            <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+            <div class="invalid-feedback">Please enter a description for the task.</div>
+        </div>
+    
+        <div class="col-md-12">
+          <input type="checkbox" id="is_child_checkbox" name="is_child" onclick="toggleParentTaskField()">
+          <label for="is_child_checkbox" class="form-label">Is Child</label>
+      </div>
+      
+      <div class="col-md-12" id="parent_task_field" style="display: none;">
+          <label for="parent_task" class="form-label">Select Parent Task</label>
+          <select class="form-select" id="parent_task" name="parent_task">
+              <option value="">Select Task</option>
+              {% for task in all_tasks %}
+                  <option value="{{ task.id }}">{{ task.taskname }}</option>
+              {% endfor %}
+          </select>
+          <div class="invalid-feedback">Please select a parent task if "Is Child" is checked.</div>
+      </div>
+      
+    
+      <script>
+        function toggleParentTaskField() {
+            var isChildCheckbox = document.getElementById('is_child_checkbox');
+            var parentTaskField = document.getElementById('parent_task_field');
+            var parentTaskSelect = document.getElementById('parent_task');
+    
+            if (isChildCheckbox.checked) {
+                parentTaskField.style.display = 'block';
+                parentTaskSelect.setAttribute('required', 'required');  // Make parent task mandatory
+            } else {
+                parentTaskField.style.display = 'none';
+                parentTaskSelect.removeAttribute('required');  // Remove the required attribute when unchecked
+            }
+        }
+    </script>
+    
+        <div class="col-12">
+            <button class="btn btn-primary" type="submit">Assign</button>
+        </div>
+    </form>
+    
     </div>
   </div>
 </div>

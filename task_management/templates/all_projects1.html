@@ -76,7 +76,13 @@
                                     {% endif %}
                                 </div>
                             </td>
-                            <td>{{ project.status }}</td>
+                            <td>
+                                {% if project.all_tasks_completed %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                              </td>
                         </tr>
                     
                         <!-- Modal for showing more users in a vertical list -->

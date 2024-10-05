@@ -36,10 +36,10 @@ class Project(models.Model):
     # The user who assigned the project (admin/superuser)
     assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_projects')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
-    
+    # Method to check if all tasks are completed
+    def all_tasks_completed(self):
+        return self.tasks.filter(status='Completed').count() == self.tasks.count()
 
-
-    
     def __str__(self):
         return self.projectname
     
@@ -101,6 +101,11 @@ class Task(models.Model):
     # Relationships
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
+    
+    # New field for child task functionality
+    is_child = models.BooleanField(default=False)
+    parent_task = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='child_tasks')
+
     def __str__(self):
         return f"{self.taskname} - {self.priority}"
 

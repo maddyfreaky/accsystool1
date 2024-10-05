@@ -20,21 +20,22 @@
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">All Tasks List</h5>
+              <div class="table-responsive">
               <table class="table datatable" id="userTable">
                 <thead>
                   <tr>
                     <th>Projectname</th>
                     <th>Task name</th>
                     <th>Priority</th>
-                    <th>Assigned To</th> <!-- New column for the user working on the task -->
+                    <th class="text-nowrap">Assigned To</th> <!-- New column for the user working on the task -->
                     <th>Startdate</th>
                     <th>Enddate</th>
-                    <th>Add Comment</th> <!-- Column for the Add Comment button -->
+                    <th>Comment</th> <!-- Column for the Add Comment button -->
                   </tr>
                 </thead>
                 <tbody>
                   {% for task in tasks %}
-                    <tr>
+                    <tr class="text-nowrap">
                       <td>{{ task.project.projectname }}</td> <!-- Project name -->
                       <td>{{ task.taskname }}</td> <!-- Task name -->
                       <td>{{ task.priority }}</td> <!-- Task priority -->
@@ -57,6 +58,7 @@
                   {% endfor %}
                 </tbody>
               </table>
+            </div>
             </div>
           </div>
         </div>
