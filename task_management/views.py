@@ -27,25 +27,34 @@ from django.contrib.auth.models import Group
 def todlistpage(request):
     print("todolistpage function")
 
-    # Retrieve projects that have tasks assigned to the logged-in user
-    projects = Project.objects.filter(tasks__user=request.user).distinct().order_by('-created_at')
+    if request.user.groups.filter(name="SuperAdmin").exists():
+        # For SuperAdmin, fetch projects where the 'user' field is the logged-in user's ID
+        projects = Project.objects.filter(user=request.user).distinct().order_by('-created_at')
+        print("SuperAdmin projects:", projects)
+    else:
+        # For regular users, fetch projects that have tasks assigned to the logged-in user
+        projects = Project.objects.filter(tasks__user=request.user).distinct().order_by('-created_at')
+        print("Regular user projects:", projects)
 
     # Iterate through the projects and check the status of tasks
     for project in projects:
         # Check if all tasks for this project are completed
         if project.all_tasks_completed():
+            print("Project all tasks completed")
             # Update the project status to 'Completed' if all tasks are completed
             if project.status != 'completed':
                 project.status = 'completed'
                 project.save()  # Save the updated status
         else:
-            # Set project status to 'Pending' if not all tasks are completed
+            print("Project not all tasks completed")
+            # Set project status to 'Pending Review' if not all tasks are completed
             if project.status != 'pending_review':
                 project.status = 'pending_review'
                 project.save()
 
     # Only show 'Pending' and 'Completed' as status choices for display purposes
     status_choices = [('pending_review', 'Pending'), ('completed', 'Completed')]
+    print("Final project list:", projects)
 
     return render(request, 'todopage.html', {'projects': projects, 'status_choices': status_choices})
 
@@ -246,8 +255,9 @@ def todotable(request):
 
 @login_required
 def user_list(request):
-    if request.user.is_superuser:  # Check if the logged-in user is an admin (superuser)
-        users = User.objects.exclude(is_superuser=True).exclude(id=request.user.id)
+    if request.user.groups.filter(name__in=["Admin", "SuperAdmin"]).exists():
+        # Fetch all users excluding superusers (but include the logged-in Admin)
+        users = User.objects.exclude(is_superuser=True)
         return render(request, 'user_list.html', {'users': users})
     else:
         # Redirect non-superusers or show a permission denied message
@@ -256,18 +266,21 @@ def user_list(request):
 
 def user_project(request, user_id):
     print("user_project function")
+
     # Get the user by ID or return 404 if not found
     user = get_object_or_404(User, id=user_id)
 
-    # Get all projects associated with the specific user
-    user_projects = Project.objects.all().order_by('-created_at')
-    print("this is the user_projects",user_projects)
+    # Filter out projects associated with users in the SuperAdmin group
+    user_projects = Project.objects.exclude(user__groups__name='SuperAdmin').order_by('-created_at')
+    print("Filtered user_projects (excluding SuperAdmin projects):", user_projects)
+
     context = {
         'user': user,  # Pass the selected user
-        'projects': user_projects,  # Pass the projects for this user
+        'projects': user_projects,  # Pass the filtered projects for this user
     }
 
     return render(request, 'user_project.html', context)
+
 
 
 @login_required
@@ -393,7 +406,7 @@ def edit_project(request, project_id):
         project.to_date = request.POST.get('todate')
         
         project.save()
-        return redirect('user_project', user_id=project.user.id)
+        return redirect('todlistpage')
     
     return HttpResponse("Invalid request method.", status=400)
 
@@ -428,8 +441,8 @@ def card_update_task_status(request, task_id):
             task.status = status
             task.save()
 
-    # Redirect to the all_projects_with_tasks URL
-    return redirect('all_projects_with_tasks')  # Adjust to your actual URL name
+    # Redirect to the same page (current page)
+    return redirect(request.META.get('HTTP_REFERER', 'all_projects_with_tasks'))
     
 def specific_user_tasks_view(request, project_id):
     # Retrieve the project based on the project ID
@@ -438,17 +451,21 @@ def specific_user_tasks_view(request, project_id):
     # Retrieve tasks for this project that are assigned to the logged-in user
     tasks = Task.objects.filter(project=project, user=request.user)
 
-    # Filter out child tasks if their parent task's status is not "Completed"
-    filtered_tasks = []
+    # Add a property to child tasks indicating whether the parent task is completed
+    processed_tasks = []
     for task in tasks:
-        if not task.is_child:  # If the task is not a child, add it
-            filtered_tasks.append(task)
-        elif task.is_child and task.parent_task.status == 'Completed':  # Add child tasks only if parent is completed
-            filtered_tasks.append(task)
+        if task.is_child:
+            if task.parent_task.status != 'Completed':
+                task.is_faded = True  # Mark as faded
+            else:
+                task.is_faded = False  # No fade if parent is completed
+        else:
+            task.is_faded = False  # Regular tasks are not faded
+        processed_tasks.append(task)
 
     context = {
         'project': project,
-        'tasks': filtered_tasks
+        'tasks': processed_tasks
     }
 
     return render(request, 'specific_user_task.html', context)
@@ -652,9 +669,17 @@ def all_projects_with_tasks(request):
             filtered_tasks = []
             for task in tasks:
                 if not task.is_child:  # If the task is not a child, add it
-                    filtered_tasks.append(task)
-                elif task.is_child and task.parent_task.status == 'Completed':  # Add child tasks only if parent is completed
-                    filtered_tasks.append(task)
+                    filtered_tasks.append({
+                        'task': task,
+                        'disabled': False  # Not disabled
+                    })
+                elif task.is_child:
+                    # If the parent task is not completed, mark it as disabled
+                    disabled = task.parent_task.status != 'Completed'
+                    filtered_tasks.append({
+                        'task': task,
+                        'disabled': disabled  # Mark child task as disabled based on parent's status
+                    })
 
             if filtered_tasks:  # Add only if there are tasks to display after filtering
                 user_tasks.append({
@@ -739,32 +764,40 @@ def edit_task(request):
 
 @login_required
 def get_tasks_for_kanban_view(request):
-    user = request.user  # Get the logged-in user
+    user = request.user
     
-    # Filter tasks based on the logged-in user
+    # Filter tasks based on the logged-in user and their statuses
     todo_tasks = Task.objects.filter(user=user, status='Not Started')
     in_progress_tasks = Task.objects.filter(user=user, status='Working')
     completed_tasks = Task.objects.filter(user=user, status='Completed')
-    
-    # Filter logic to exclude child tasks unless their parent is completed
+    pending_review_tasks = Task.objects.filter(user=user, status='Pending Review')
+    cancelled_tasks = Task.objects.filter(user=user, status='Cancelled')
+    rework_tasks = Task.objects.filter(user=user, status='Rework')  # New line for Rework tasks
+
+    # Filtering child tasks based on parent status
     def filter_child_tasks(tasks):
         filtered_tasks = []
         for task in tasks:
-            if not task.is_child:  # If not a child task, include it
+            if not task.is_child:
                 filtered_tasks.append(task)
-            elif task.is_child and task.parent_task.status == 'Completed':  # Include if parent task is completed
+            elif task.is_child and task.parent_task.status == 'Completed':
                 filtered_tasks.append(task)
         return filtered_tasks
 
-    # Apply the filtering to each task list
     todo_tasks_custom = filter_child_tasks(todo_tasks)
     in_progress_tasks_custom = filter_child_tasks(in_progress_tasks)
     completed_tasks_custom = filter_child_tasks(completed_tasks)
-    
+    pending_review_tasks_custom = filter_child_tasks(pending_review_tasks)
+    cancelled_tasks_custom = filter_child_tasks(cancelled_tasks)
+    rework_tasks_custom = filter_child_tasks(rework_tasks)  # Filtering Rework tasks
+
     context = {
         'todo_tasks_custom': todo_tasks_custom,
         'in_progress_tasks_custom': in_progress_tasks_custom,
         'completed_tasks_custom': completed_tasks_custom,
+        'pending_review_tasks_custom': pending_review_tasks_custom,
+        'cancelled_tasks_custom': cancelled_tasks_custom,
+        'rework_tasks_custom': rework_tasks_custom,  # Adding to context
     }
     
     return render(request, 'usercard.html', context)

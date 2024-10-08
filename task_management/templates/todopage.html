@@ -35,12 +35,17 @@
 
               
 
-             <div class="d-flex justify-content-between align-items-center mb-3">
-              {% if request.user|in_group:"Admin" or request.user|in_group:"Superadmin" %}
-              <input type="submit" class="btn btn-primary mt-2" value="Create Project" data-bs-toggle="modal" data-bs-target="#fdModal">
-                  <a href="{% url 'all_projectss' %}" class="btn btn-primary mt-2">All Projects</a>
-              {% endif %}
-          </div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                {% if request.user|in_group:"Superadmin" %}
+                    <!-- Show 'Create Project' button only for Superadmin -->
+                    <input type="submit" class="btn btn-primary mt-2" value="Create Project" data-bs-toggle="modal" data-bs-target="#fdModal">
+                {% endif %}
+                
+                {% if request.user|in_group:"Admin" or request.user|in_group:"Superadmin" %}
+                    <!-- Show 'All Projects' button for both Admin and Superadmin -->
+                    <a href="{% url 'all_projectss' %}" class="btn btn-primary mt-2">All Projects</a>
+                {% endif %}
+            </div>
 
 
 
@@ -100,13 +105,16 @@
           </td>
 
           <!-- Display the project status dynamically based on tasks' statuses -->
-<td>
-  {% if project.all_tasks_completed %}
-      <span class="badge bg-success">Completed</span>
-  {% else %}
-      <span class="badge bg-warning">Pending</span>
-  {% endif %}
-</td>
+          <td>
+            {% if project.tasks.count == 0 %}
+                <span class="badge bg-secondary">Not Started</span>
+            {% elif project.all_tasks_completed %}
+                <span class="badge bg-success">Completed</span>
+            {% else %}
+                <span class="badge bg-warning">Pending</span>
+            {% endif %}
+          </td>
+          
           <!-- Show actions if the user is in Superadmin group -->
           {% if request.user|in_group:"Superadmin" %}
           <td>

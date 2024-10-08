@@ -87,21 +87,24 @@ class Task(models.Model):
     STATUS_CHOICES = [
         ('Not Started', 'Not Started'),
         ('Working', 'Working'),
+        ('Pending Review', 'Pending Review'),
         ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+        ('Rework', 'Rework'),
     ]
 
     taskname = models.CharField(max_length=255)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='Low')
     from_date = models.DateField()
     to_date = models.DateField()
-    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='Not Started')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Not Started')
     
     description = models.TextField(blank=True)  # New field for task description
 
     # Relationships
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
-    
+
     # New field for child task functionality
     is_child = models.BooleanField(default=False)
     parent_task = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='child_tasks')

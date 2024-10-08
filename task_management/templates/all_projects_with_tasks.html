@@ -41,34 +41,40 @@
                             </thead>
                             <tbody>
                                 {% for entry in user_tasks %}
-                                    {% for task in entry.tasks %}
-                                        <tr class="text-nowrap">
+                                    {% for task_data in entry.tasks %}
+                                        <tr class="text-nowrap {% if task_data.disabled %}faded-task{% endif %}">
                                             <td>{{ entry.project.projectname }}</td>
-                                            <td>{{ task.taskname }}</td>
+                                            <td>{{ task_data.task.taskname }}</td>
                                             <td>
-                                                <span class="{% if task.priority == 'Low' %}text-secondary{% elif task.priority == 'Medium' %}text-primary{% elif task.priority == 'High' or task.priority == 'Urgent' %}text-danger{% endif %}">
-                                                    {{ task.priority }}
+                                                <span class="{% if task_data.task.priority == 'Low' %}text-secondary{% elif task_data.task.priority == 'Medium' %}text-primary{% elif task_data.task.priority == 'High' or task_data.task.priority == 'Urgent' %}text-danger{% endif %}">
+                                                    {{ task_data.task.priority }}
                                                 </span>
                                             </td>
-                                            <td>{{ task.from_date }}</td>
-                                            <td>{{ task.to_date }}</td>
+                                            <td>{{ task_data.task.from_date }}</td>
+                                            <td>{{ task_data.task.to_date }}</td>
                                             <td>
-                                                {{ task.description|slice:":6" }}... 
-                                                <a href="#" class="read-more" data-bs-toggle="modal" data-bs-target="#descriptionModal" data-description="{{ task.description }}">
+                                                {{ task_data.task.description|slice:":6" }}... 
+                                                <a href="#" class="read-more" data-bs-toggle="modal" data-bs-target="#descriptionModal" data-description="{{ task_data.task.description }}">
                                                     Read More
                                                 </a>
                                             </td>
                                             <td>
-                                                <form method="POST" action="{% url 'card_update_task_status' task.id %}">
+                                                <form method="POST" action="{% url 'card_update_task_status' task_data.task.id %}">
                                                     {% csrf_token %}
-                                                    <select style="width: 120px;" name="status" onchange="this.className = this.options[this.selectedIndex].className; this.form.submit();" class="form-control form-control-sm
-                                                        {% if task.status == 'Not Started' %}text-danger{% elif task.status == 'Working' %}text-primary{% elif task.status == 'Completed' %}text-success{% endif %}">
-                                                        <option value="Not Started" class="text-danger" {% if task.status == 'Not Started' %}selected{% endif %}>Not Started</option>
-                                                        <option value="Working" class="text-primary" {% if task.status == 'Working' %}selected{% endif %}>Working</option>
-                                                        <option value="Completed" class="text-success" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                                    <select style="width: 120px;" name="status" onchange="this.className = this.options[this.selectedIndex].className; this.form.submit();" 
+                                                    class="form-control form-control-sm
+                                                        {% if task_data.task.status == 'Not Started' %}text-danger{% elif task_data.task.status == 'Working' %}text-primary{% elif task_data.task.status == 'Completed' %}text-success{% elif task_data.task.status == 'Pending Review' %}text-warning{% elif task_data.task.status == 'Cancelled' %}text-muted{% elif task_data.task.status == 'Rework' %}text-info{% endif %}"
+                                                        {% if task_data.disabled %} disabled {% endif %}>
+                                                        <option value="Not Started" class="text-danger" {% if task_data.task.status == 'Not Started' %}selected{% endif %}>Not Started</option>
+                                                        <option value="Working" class="text-primary" {% if task_data.task.status == 'Working' %}selected{% endif %}>Working</option>
+                                                        <option value="Pending Review" class="text-warning" {% if task_data.task.status == 'Pending Review' %}selected{% endif %}>Pending Review</option>
+                                                        <option value="Completed" class="text-success" {% if task_data.task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                                        <option value="Cancelled" class="text-muted" {% if task_data.task.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                                        <option value="Rework" class="text-info" {% if task_data.task.status == 'Rework' %}selected{% endif %}>Rework</option>
                                                     </select>
                                                 </form>
                                             </td>
+                                            
                                         </tr>
                                     {% endfor %}
                                 {% empty %}
@@ -77,6 +83,8 @@
                                     </tr>
                                 {% endfor %}
                             </tbody>
+                            
+                            
                         </table>
                     </div>
                     </div>
@@ -102,6 +110,18 @@
       </div>
     </div>
   </div>
+  <style>
+    .faded-task {
+        opacity: 0.5; /* This makes the row look faded */
+        pointer-events: none; /* Prevents interaction */
+    }
+    .faded-task a {
+        pointer-events: none; /* Prevents clicking on links in faded rows */
+    }
+    .faded-task select {
+        background-color: #f8f9fa; /* Lighten the background for disabled dropdowns */
+    }
+</style>
   
   <script>
     document.addEventListener('DOMContentLoaded', function () {

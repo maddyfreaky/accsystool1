@@ -77,13 +77,15 @@
                                 </div>
                             </td>
                             <td>
-                                {% if project.all_tasks_completed %}
+                                {% if project.tasks.count == 0 %}
+                                    <span class="badge bg-secondary">Not Started</span>
+                                {% elif project.all_tasks_completed %}
                                     <span class="badge bg-success">Completed</span>
                                 {% else %}
                                     <span class="badge bg-warning">Pending</span>
                                 {% endif %}
                               </td>
-                        </tr>
+                              
                     
                         <!-- Modal for showing more users in a vertical list -->
                         <div class="modal fade" id="showMoreModal{{ project.id }}" tabindex="-1" aria-labelledby="showMoreModalLabel{{ project.id }}" aria-hidden="true">

@@ -1,3 +1,4 @@
+{% load custom_tags %}
 {% load static %}
 
 <!-- ======= Sidebar ======= -->
@@ -19,7 +20,7 @@
         </a>
       </li>
 
-      {% if request.user.is_superuser %}
+      {% if request.user|in_group:"Admin" or request.user|in_group:"SuperAdmin" %}
 
 
       <li class="nav-item">
@@ -29,7 +30,8 @@
         </a>
       </li>
       
-      {% endif %}
+      
+
 
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'user_list' %}">
@@ -37,6 +39,7 @@
           <span>Users</span>
         </a>
       </li>
+      {% endif %}
       
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'workflow' %}">

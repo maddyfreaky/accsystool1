@@ -30,6 +30,7 @@
                     <th class="text-nowrap">Assigned To</th> <!-- New column for the user working on the task -->
                     <th>Startdate</th>
                     <th>Enddate</th>
+                    <th>Status</th>
                     <th>Comment</th> <!-- Column for the Add Comment button -->
                   </tr>
                 </thead>
@@ -42,6 +43,24 @@
                       <td>{{ task.user.username }}</td> <!-- User who assigned the project -->
                       <td>{{ task.from_date }}</td> <!-- Start date -->
                       <td>{{ task.to_date }}</td> <!-- End date -->
+                      <td>
+                        <form method="POST" action="{% url 'card_update_task_status' task.id %}">
+                            {% csrf_token %}
+                            <select style="width: 120px;" name="status" onchange="this.className = this.options[this.selectedIndex].className; this.form.submit();" 
+                            class="form-control form-control-sm
+                                {% if task.status == 'Not Started' %}text-danger{% elif task.status == 'Working' %}text-primary{% elif task.status == 'Completed' %}text-success{% elif task.status == 'Pending Review' %}text-warning{% elif task.status == 'Cancelled' %}text-muted{% elif task.status == 'Rework' %}text-info{% endif %}">
+                                
+                                <option value="Not Started" class="text-danger" {% if task.status == 'Not Started' %}selected{% endif %}>Not Started</option>
+                                <option value="Working" class="text-primary" {% if task.status == 'Working' %}selected{% endif %}>Working</option>
+                                <option value="Pending Review" class="text-warning" {% if task.status == 'Pending Review' %}selected{% endif %}>Pending Review</option>
+                                <option value="Completed" class="text-success" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                <option value="Cancelled" class="text-muted" {% if task.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                <option value="Rework" class="text-info" {% if task.status == 'Rework' %}selected{% endif %}>Rework</option>
+                            </select>
+                        </form>
+                    </td>
+                    
+
                       <td>
                         <!-- Add Comment Button (Opens modal) -->
                         <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" 
