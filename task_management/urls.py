@@ -51,6 +51,8 @@ urlpatterns = [
     path('edit-task/', views.edit_task, name='edit_task'),
     path('add-comment/<int:task_id>/', views.add_comment, name='add_comment'),
     path('get-comments/<int:task_id>/', views.get_comments, name='get_comments'),
-    
+    path('mark-notifications-read/', views.mark_notifications_as_read, name='mark-notifications-read'),
+    path('fetch-notifications/', views.fetch_notifications, name='fetch_notifications'),
+   
     
 ]

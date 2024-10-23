@@ -21,10 +21,14 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="card-title">Tasks List</h5>
-                            <a href="{% url 'kanban_view' %}" class="btn btn-secondary">Kanban View</a>
-                            {% if request.user|in_group:"Superadmin" or request.user|in_group:"Admin" %}
-                                <a href="{% url 'all_users_tasks' %}" class="btn btn-primary">All Tasks</a>
-                            {% endif %}
+                        
+                            <div>
+                                <a href="{% url 'kanban_view' %}" class="btn btn-secondary">Kanban View</a>
+                        
+                                {% if request.user|in_group:"Superadmin" or request.user|in_group:"Admin" %}
+                                    <a href="{% url 'all_users_tasks' %}" class="btn btn-primary ms-2">All Tasks</a>
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="table-responsive">
                         <table class="table datatable" id="userTable">

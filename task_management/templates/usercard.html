@@ -26,13 +26,18 @@
 
     .kanban-column h5 {
       text-align: center;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
+    
+    .issue-card {
+    border: 1px solid rgba(0, 0, 0, 0.484); /* Black border around each task card */
+    border-radius: 5px; /* Optional: Rounded corners */
+  }
 
     .kanban-task {
       background-color: #fff;
-      margin-bottom: 10px;
-      padding: 10px;
+      margin-bottom: 5px;
+      padding: 8px;
       border-radius: 5px;
       cursor: move;
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -53,8 +58,8 @@
     /* Style for the task container */
 .task-container {
     /* border: 2px dashed white; Dashed border to indicate a drop area */
-    padding: 10px;
-    min-height: 100px; /* Minimum height for better visibility */
+    padding: 5px;
+    min-height: 400px; /* Minimum height for better visibility */
     transition: background-color 0.3s; /* Smooth background change */
 }
 
@@ -69,6 +74,62 @@
     background-color: #e0e0e0; /* Light gray background on drag over */
     border-color: #888; /* Darker border on drag over */
 }
+/* General container style for all columns */
+.task-container {
+    max-height: 400px; /* Adjust based on your requirement */
+    overflow-y: auto;  /* Enable vertical scrolling */
+}
+
+/* Customize the scrollbar */
+.task-container::-webkit-scrollbar {
+    width: 5px; /* Thin scrollbar */
+}
+
+/* Track (background) */
+.task-container::-webkit-scrollbar-track {
+    background-color: transparent; /* Transparent or match the container's background */
+}
+
+/* Handle (scroll thumb) */
+.task-container::-webkit-scrollbar-thumb {
+    background-color: #d4d4f7; /* Adjust to match the column's background */
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+.task-container::-webkit-scrollbar-thumb:hover {
+    background-color: #aaa; /* Darker shade when hovering */
+}
+/* To Do Column - Light Yellow Scrollbar */
+#todoIssues::-webkit-scrollbar-thumb {
+    background-color: #FFF9C4; /* Light Yellow */
+}
+
+/* In Progress Column - Light Blue Scrollbar */
+#progressIssues::-webkit-scrollbar-thumb {
+    background-color: #BBDEFB; /* Light Blue */
+}
+
+/* Done Column - Light Green Scrollbar */
+#doneIssues::-webkit-scrollbar-thumb {
+    background-color: #C8E6C9; /* Light Green */
+}
+
+/* Pending Review Column - Light Peach Scrollbar */
+#reviewIssues::-webkit-scrollbar-thumb {
+    background-color: #ffe5d9; /* Light Peach */
+}
+
+/* Cancelled Column - Lavender Scrollbar */
+#cancelledIssues::-webkit-scrollbar-thumb {
+    background-color: #d4d4f7; /* Lavender */
+}
+
+/* Rework Column - Light Orange Scrollbar */
+#reworkIssues::-webkit-scrollbar-thumb {
+    background-color: #FFCCBC; /* Light Orange */
+}
+
   </style>
 </head>
 <body>
@@ -93,15 +154,29 @@
       <div class="card-body">
         <h5 class="card-title d-flex justify-content-center align-items-center font-weight-bold" style="font-size: 1rem;">To Do</h5>
 
-          <div class="ps-3 mt-3 task-container" id="todoIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+          <div class="ps-3 mt-1 task-container" id="todoIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
               {% for task in todo_tasks_custom %}
-              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Not Started" style="background-color: #FFF9C4;"> <!-- Match column color -->
+              <div class="card mt-1 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Not Started" style="background-color: #FFF9C4;"> <!-- Match column color -->
                   <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                      <span class="text-dark small pt-2 ps-1">Project: {{ task.project.projectname }} <br> Task: {{ task.taskname }}</span>
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
-                      </ul>
+                    <span class="text-dark small pt-2 ps-1">
+                      Project: 
+                      {{ task.project.projectname|slice:":7" }}{% if task.project.projectname|length > 7 %}...{% endif %} <br>
+                      Task: 
+                      {{ task.taskname|slice:":7" }}{% if task.taskname|length > 7 %}...{% endif %}
+                    </span>
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li>
+                            <a class="dropdown-item more-details-btn" href="#" data-bs-toggle="modal" data-bs-target="#detailsModal" data-task-id="{{ task.id }}" 
+                            data-project-name="{{ task.project.projectname }}" 
+                            data-task-name="{{ task.taskname }}"
+                            data-status-updated="{{ task.status_updated_at|date:'Y-m-d H:i:s' }}"
+                            data-description="{{ task.description }}">
+                            More details</a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
+                    </ul>
+                    
                   </div>
               </div>
               {% endfor %}
@@ -116,15 +191,29 @@
       <div class="card-body">
         <h5 class="card-title d-flex justify-content-center align-items-center font-weight-bold" style="font-size: 1rem;">In Progress</h5>
 
-          <div class="ps-3 mt-3 task-container" id="progressIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+          <div class="ps-3 mt-1 task-container" id="progressIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
               {% for task in in_progress_tasks_custom %}
-              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Working" style="background-color: #BBDEFB;"> <!-- Match column color -->
+              <div class="card mt-1 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Working" style="background-color: #BBDEFB;"> <!-- Match column color -->
                   <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                      <span class="text-dark small pt-2 ps-1">Project: {{ task.project.projectname }} <br> Task: {{ task.taskname }}</span>
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
-                      </ul>
+                    <span class="text-dark small pt-2 ps-1">
+                      Project: 
+                      {{ task.project.projectname|slice:":7" }}{% if task.project.projectname|length > 7 %}...{% endif %} <br>
+                      Task: 
+                      {{ task.taskname|slice:":7" }}{% if task.taskname|length > 7 %}...{% endif %}
+                    </span>
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li>
+                            <a class="dropdown-item more-details-btn" href="#" data-bs-toggle="modal" data-bs-target="#detailsModal" data-task-id="{{ task.id }}" 
+                            data-project-name="{{ task.project.projectname }}" 
+                            data-task-name="{{ task.taskname }}"
+                            data-status-updated="{{ task.status_updated_at|date:'Y-m-d H:i:s'}}"
+                            data-description="{{ task.description }}">
+                            More details</a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
+                    </ul>
+                    
                   </div>
               </div>
               {% endfor %}
@@ -139,15 +228,29 @@
       <div class="card-body">
         <h5 class="card-title d-flex justify-content-center align-items-center font-weight-bold" style="font-size: 1rem;">Done</h5>
 
-          <div class="ps-3 mt-3 task-container" id="doneIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+          <div class="ps-3 mt-1 task-container" id="doneIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
               {% for task in completed_tasks_custom %}
-              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Completed" style="background-color: #C8E6C9;"> <!-- Match column color -->
-                  <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                      <span class="text-dark small pt-2 ps-1">Project: {{ task.project.projectname }} <br> Task: {{ task.taskname }}</span>
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
-                      </ul>
+              <div class="card mt-1 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Completed" style="background-color: #C8E6C9;"> <!-- Match column color -->
+                  <div class="card-body p-2 d-flex justify-content-between align-items-center" >
+                    <span class="text-dark small pt-2 ps-1">
+                      Project: 
+                      {{ task.project.projectname|slice:":7" }}{% if task.project.projectname|length > 7 %}...{% endif %} <br>
+                      Task: 
+                      {{ task.taskname|slice:":7" }}{% if task.taskname|length > 7 %}...{% endif %}
+                    </span>
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li>
+                            <a class="dropdown-item more-details-btn" href="#" data-bs-toggle="modal" data-bs-target="#detailsModal" data-task-id="{{ task.id }}" 
+                            data-project-name="{{ task.project.projectname }}" 
+                            data-task-name="{{ task.taskname }}"
+                            data-status-updated="{{ task.status_updated_at|date:'Y-m-d H:i:s' }}"
+                            data-description="{{ task.description }}">
+                            More details</a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
+                    </ul>
+                    
                   </div>
               </div>
               {% endfor %}
@@ -162,15 +265,29 @@
       <div class="card-body">
         <h5 class="card-title d-flex justify-content-center align-items-center font-weight-bold" style="font-size: 1rem;">Pending Review</h5>
 
-          <div class="ps-3 mt-3 task-container" id="reviewIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+          <div class="ps-3 mt-1 task-container" id="reviewIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
               {% for task in pending_review_tasks_custom %}
-              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Pending Review" style="background-color: #ffe5d9;"> <!-- Match column color -->
+              <div class="card mt-1 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Pending Review" style="background-color: #ffe5d9;"> <!-- Match column color -->
                   <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                      <span class="text-dark small pt-2 ps-1">Project: {{ task.project.projectname }} <br> Task: {{ task.taskname }}</span>
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
-                      </ul>
+                    <span class="text-dark small pt-2 ps-1">
+                      Project: 
+                      {{ task.project.projectname|slice:":7" }}{% if task.project.projectname|length > 7 %}...{% endif %} <br>
+                      Task: 
+                      {{ task.taskname|slice:":7" }}{% if task.taskname|length > 7 %}...{% endif %}
+                    </span>
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li>
+                            <a class="dropdown-item more-details-btn" href="#" data-bs-toggle="modal" data-bs-target="#detailsModal" data-task-id="{{ task.id }}" 
+                            data-project-name="{{ task.project.projectname }}" 
+                            data-task-name="{{ task.taskname }}"
+                            data-status-updated="{{ task.status_updated_at|date:'Y-m-d H:i:s' }}"
+                            data-description="{{ task.description }}">
+                            More details</a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
+                    </ul>
+                    
                   </div>
               </div>
               {% endfor %}
@@ -179,43 +296,71 @@
   </div>
 </div>
 
-<!-- Cancelled Column -->
-<div class="col-xxl-2 col-md-2">
-  <div class="card info-card revenue-card" style="background-color: #d4d4f7;"> <!-- Lavender -->
-      <div class="card-body">
-        <h5 class="card-title d-flex justify-content-center align-items-center font-weight-bold" style="font-size: 1rem;">Cancelled</h5>
 
-          <div class="ps-3 mt-3 task-container" id="cancelledIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
-              {% for task in cancelled_tasks_custom %}
-              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Cancelled" style="background-color: #d4d4f7;"> <!-- Match column color -->
-                  <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                      <span class="text-dark small pt-2 ps-1">Project: {{ task.project.projectname }} <br> Task: {{ task.taskname }}</span>
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
-                      </ul>
-                  </div>
-              </div>
-              {% endfor %}
-          </div>
-      </div>
-  </div>
-</div>
 <!-- Rework Column -->
 <div class="col-xxl-2 col-md-2">
   <div class="card info-card revenue-card" style="background-color: #FFCCBC;"> <!-- Light Orange -->
       <div class="card-body">
         <h5 class="card-title d-flex justify-content-center align-items-center font-weight-bold" style="font-size: 1rem;">Rework</h5>
 
-          <div class="ps-3 mt-3 task-container" id="reworkIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+          <div class="ps-3 mt-1 task-container" id="reworkIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
               {% for task in rework_tasks_custom %}
-              <div class="card mt-2 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Rework" style="background-color: #FFCCBC;"> <!-- Match column color -->
+              <div class="card mt-1 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Rework" style="background-color: #FFCCBC;"> <!-- Match column color -->
                   <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                      <span class="text-dark small pt-2 ps-1">Project: {{ task.project.projectname }} <br> Task: {{ task.taskname }}</span>
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
-                      </ul>
+                    <span class="text-dark small pt-2 ps-1">
+                      Project: 
+                      {{ task.project.projectname|slice:":7" }}{% if task.project.projectname|length > 7 %}...{% endif %} <br>
+                      Task: 
+                      {{ task.taskname|slice:":7" }}{% if task.taskname|length > 7 %}...{% endif %}
+                    </span>
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li>
+                            <a class="dropdown-item more-details-btn" href="#" data-bs-toggle="modal" data-bs-target="#detailsModal" data-task-id="{{ task.id }}" 
+                            data-project-name="{{ task.project.projectname }}" 
+                            data-task-name="{{ task.taskname }}"
+                            data-status-updated="{{ task.status_updated_at|date:'Y-m-d H:i:s' }}"
+                            data-description="{{ task.description }}">
+                            More details</a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
+                    </ul>
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+      </div>
+  </div>
+</div>
+<!-- Cancelled Column -->
+<div class="col-xxl-2 col-md-2">
+  <div class="card info-card revenue-card" style="background-color: #d4d4f7;"> <!-- Lavender -->
+      <div class="card-body">
+        <h5 class="card-title d-flex justify-content-center align-items-center font-weight-bold" style="font-size: 1rem;">Cancelled</h5>
+
+          <div class="ps-3 mt-1 task-container" id="cancelledIssues" ondrop="drop(event)" ondragover="allowDrop(event)">
+              {% for task in cancelled_tasks_custom %}
+              <div class="card mt-1 issue-card" draggable="true" ondragstart="drag(event)" id="task-{{ task.id }}" data-id="{{ task.id }}" data-status="Cancelled" style="background-color: #d4d4f7;"> <!-- Match column color -->
+                  <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                    <span class="text-dark small pt-2 ps-1">
+                      Project: 
+                      {{ task.project.projectname|slice:":7" }}{% if task.project.projectname|length > 7 %}...{% endif %} <br>
+                      Task: 
+                      {{ task.taskname|slice:":7" }}{% if task.taskname|length > 7 %}...{% endif %}
+                    </span>
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li>
+                            <a class="dropdown-item more-details-btn" href="#" data-bs-toggle="modal" data-bs-target="#detailsModal" data-task-id="{{ task.id }}" 
+                            data-project-name="{{ task.project.projectname }}" 
+                            data-task-name="{{ task.taskname }}"
+                            data-status-updated="{{ task.status_updated_at|date:'Y-m-d H:i:s' }}"
+                            data-description="{{ task.description }}">
+                            More details</a>
+                        </li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#commentModal" data-task-id="{{ task.id }}">Add a Comment</a></li>
+                    </ul>
+                    
                   </div>
               </div>
               {% endfor %}
@@ -226,10 +371,31 @@
 
 
 
-
     </div>
   </section>
 </main>
+
+<!-- More Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailsModalLabel">Task Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Project Name:</strong> <span id="modalProjectName"></span></p>
+        <p><strong>Task Name:</strong> <span id="modalTaskName"></span></p>
+        <p><strong>Status Updated At:</strong> <span id="modalStatusUpdatedAt"></span></p>
+        <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Comment Modal -->
 <div class="modal fade" id="commentModal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
@@ -456,6 +622,32 @@ function updateTaskColor(taskElement, status) {
           task.addEventListener('dragstart', drag);
       });
   });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const detailsModal = document.getElementById('detailsModal');
+
+    document.addEventListener('click', function (event) {
+        if (event.target.classList.contains('more-details-btn')) {
+            const projectName = event.target.getAttribute('data-project-name');
+            const taskName = event.target.getAttribute('data-task-name');
+            const statusUpdatedAt = event.target.getAttribute('data-status-updated');
+            const description = event.target.getAttribute('data-description') || 'No description provided';
+
+            // Populate the modal with task details
+            detailsModal.querySelector('#modalProjectName').textContent = projectName;
+            detailsModal.querySelector('#modalTaskName').textContent = taskName;
+
+            // Display the UTC date directly
+            detailsModal.querySelector('#modalStatusUpdatedAt').textContent = statusUpdatedAt || 'N/A';
+
+            detailsModal.querySelector('#modalDescription').textContent = description;
+        }
+    });
+});
+
+
+
+
 </script>
 
   

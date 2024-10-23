@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timesince import timesince
 from django.views.decorators.http import require_POST
 from django.urls import reverse
-import re
+import re, pytz
 from django.contrib import messages
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -257,7 +257,10 @@ def todotable(request):
 def user_list(request):
     if request.user.groups.filter(name__in=["Admin", "SuperAdmin"]).exists():
         # Fetch all users excluding superusers (but include the logged-in Admin)
-        users = User.objects.exclude(is_superuser=True)
+        superadmin_group = Group.objects.get(name='Superadmin')
+
+# Exclude users who are in the "Superadmin" group
+        users = User.objects.exclude(groups=superadmin_group)        
         return render(request, 'user_list.html', {'users': users})
     else:
         # Redirect non-superusers or show a permission denied message
@@ -283,14 +286,7 @@ def user_project(request, user_id):
 
 
 
-@login_required
-def delete_user(request, user_id):
-    if request.user.is_superuser:
-        user = get_object_or_404(User, id=user_id)
-        user.delete()
-        return JsonResponse({'success': 'User deleted successfully.'})  # Return JSON response on successful deletion
-    else:
-        return JsonResponse({'error': 'Permission Denied'}, status=403)  # Return error response if user is not superuser
+
 
 def create_project(request, user_id):
     print("create pgt function")
@@ -481,6 +477,7 @@ def specific_user_task_view_task_mgt(request, project_id, user_id):
         priority = request.POST.get('priority')
         from_date = request.POST.get('fromdate')
         to_date = request.POST.get('todate')
+        description= request.POST.get('description')
 
         # Create a new task object
         task = Task(
@@ -488,6 +485,7 @@ def specific_user_task_view_task_mgt(request, project_id, user_id):
             priority=priority,
             from_date=from_date,
             to_date=to_date,
+            description=description,
             user=user,
             project=project
         )
@@ -526,12 +524,11 @@ def create_task(request, project_id, user_id):
         priority = request.POST.get('priority')
         from_date = request.POST.get('fromdate')
         to_date = request.POST.get('todate')
-        description = request.POST.get('description')  # Get description from form
+        description = request.POST.get('description')
 
-        is_child = request.POST.get('is_child') == 'on'  # Check if "Is Child" checkbox is selected
-        parent_task_id = request.POST.get('parent_task')  # Get the parent task ID if "Is Child" is checked
+        is_child = request.POST.get('is_child') == 'on'
+        parent_task_id = request.POST.get('parent_task')
 
-        # Create the task with the specific project and user
         task = Task.objects.create(
             taskname=taskname,
             priority=priority,
@@ -540,18 +537,55 @@ def create_task(request, project_id, user_id):
             project=project,
             user=user,
             description=description,
-            is_child=is_child  # Save whether this task is a child task
+            is_child=is_child,
+            assigned_by=request.user
         )
 
-        # If the task is a child and parent task ID is provided, link the parent task
+        # Create notification for the assigned user
+        Notification.objects.create(
+            user=user,
+            message=f"Task '{taskname}' created by {request.user.username}",
+            assigned_by=request.user
+        )
+
         if is_child and parent_task_id:
             parent_task = Task.objects.get(id=parent_task_id)
             task.parent_task = parent_task
             task.save()
 
         return redirect('task_detail', project_id=project.id, user_id=user.id)
+
+    
+def mark_notifications_as_read(request):
+    user = request.user
+    if request.method == 'POST':  # Ensure it's a POST request
+        # Mark all unread notifications for this user as read
+        Notification.objects.filter(user=user, is_read=False).update(is_read=True)
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)  # Return an error for non-POST requests
+
+
+
+
+def fetch_notifications(request):
+    user = request.user  # Get the logged-in user
+    notifications = Notification.objects.filter(user=user).order_by('-created_at')  # Fetch user's notifications
+    kolkata_tz = pytz.timezone('Asia/Kolkata')  # Define Kolkata timezone
+
+    notification_data = [{
+        'assigned_by': notification.assigned_by.username,  # Show the username of the person who assigned the task
+        'task_name': notification.message.split(" created the task ")[-1],  # Extract just the task name
+        'created_at': notification.created_at.astimezone(kolkata_tz).strftime('%Y-%m-%d %I:%M %p')  # Format time in Kolkata timezone
+    } for notification in notifications]
+
+    # Fetch unread notifications for count
+    unread_count = Notification.objects.filter(user=user, is_read=False).count()
+
+    return JsonResponse({'notifications': notification_data, 'unread_count': unread_count})
+
 @login_required
 def delete_task(request, task_id):
+    print("deleyte task fun")
     if request.method == 'POST':  # Only allow POST request for deletion
         try:
             # Get the task to delete
@@ -635,6 +669,7 @@ def all_projectss(request):
         'projects': projects
     }
     return render(request, 'all_projects1.html', context)
+
 def update_task(request, task_id):
     if request.method == 'POST':
         task = get_object_or_404(Task, id=task_id)
@@ -838,3 +873,22 @@ def add_comment(request, task_id):
             'username': new_comment.user.username  # Return username
         })
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+@login_required
+def delete_user(request, user_id):
+    if request.user.is_superuser:
+        user = get_object_or_404(User, id=user_id)
+        
+        # Archive the user details before deletion
+        ArchivedUser.objects.create(
+            username=user.username,
+            email=user.email,
+            date_joined=user.date_joined
+        )
+        
+        # Delete the user
+        user.delete()
+        
+        return JsonResponse({'success': 'User deleted successfully.'})
+    else:
+        return JsonResponse({'error': 'Permission Denied'}, status=403)

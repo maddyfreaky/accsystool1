@@ -4,6 +4,7 @@
 {% load static %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 
 <body>
@@ -32,9 +33,62 @@
                 {% endif %}
 
                 <!-- Initially hidden card for task creation -->
-                <div class="col-lg-12" id="projectCard" style="display: none;">
-                    <!-- Task creation form here -->
-                </div>
+                <!-- Initially hidden card -->
+<div class="col-lg-12" id="projectCard" style="display: none;">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Task Creation</h5>
+   
+      <!-- <p>For custom Bootstrap form validation messages, you’ll need to add the <code>novalidate</code> boolean attribute to your <code>&lt;form&gt;</code>. This disables the browser default feedback tooltips, but still provides access to the form validation APIs in JavaScript.</p> -->
+      <!-- Custom Styled Validation -->
+
+
+      <form class="row g-3 needs-validation" method="post" action="{% url 'specificusertask' project.id user.id %}" novalidate>
+        {% csrf_token %}
+        <div class="col-md-6">
+            <label for="taskName" class="form-label">Task name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="taskName" name="taskname" required>
+        </div>
+    
+        <div class="col-md-6">
+            <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+            <select class="form-select" id="priority" name="priority" required>
+                <option selected disabled value="">Choose...</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+            <div class="invalid-feedback">Please select a priority level.</div>
+        </div>
+    
+        <div class="col-md-6">
+            <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="fromDate" name="fromdate" required>
+            <div class="invalid-feedback">Please select a valid start date.</div>
+        </div>
+    
+        <div class="col-md-6">
+            <label for="toDate" class="form-label">To Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="toDate" name="todate" required>
+            <div class="invalid-feedback">Please select a valid end date.</div>
+        </div>
+    
+        <!-- Add Description -->
+        <div class="col-md-12">
+            <label for="description" class="form-label">Add Description<span class="text-danger">*</span></label>
+            <textarea class="form-control" id="description" name="description" rows="4" placeholder="Describe the task..."></textarea>
+        </div>
+    
+        <div class="col-12">
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </div>
+    </form>
+    <!-- End Custom Styled Validation -->
+    </div>
+  </div>
+</div>
+
 
                 <div class="card">
                     <div class="card-body">
@@ -47,6 +101,7 @@
                                     <th>Priority</th>
                                     <th>From Date</th>
                                     <th>To Date</th>
+                                    <th>Description</th>
                                     <th>Status</th>
                                     {% if request.user|in_group:"Superadmin" %}
                                     <th>Action</th>
@@ -72,6 +127,15 @@
                                         </td>
                                         <td>{{ task.from_date }}</td>
                                         <td>{{ task.to_date }}</td>
+                                        <!-- Shortened Description Column -->
+                                          <td>
+                                            {% if task.description|length > 10 %}
+                                                {{ task.description|slice:":10" }}... 
+                                                <a href="#" data-bs-toggle="modal" data-bs-target="#taskDescriptionModal{{ task.id }}">Read more</a>
+                                            {% else %}
+                                                {{ task.description }}
+                                            {% endif %}
+                                        </td>
                                         <td>
                                           <form method="POST" action="{% url 'card_update_task_status' task.id %}">
                                               {% csrf_token %}
@@ -92,19 +156,30 @@
                                       
                                       
                                       {% if request.user|in_group:"Superadmin" %}
-                                        <td>
-                                            <div class="filter">
-                                                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                                                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                                    <li>
-                                                        <a class="dropdown-item" href="#">Edit</a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item delete-link" href="#" data-id="{{ task.id }}">Delete</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
+                                      <td>
+                                        <div class="filter">
+                                            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                                <li>
+                                                    <a class="dropdown-item edit-link" href="#"
+                                                       data-bs-toggle="modal"
+                                                       data-id="{{ task.id }}"
+                                                       data-taskname="{{ task.taskname }}"
+                                                       data-priority="{{ task.priority }}"
+                                                       data-fromdate="{{ task.from_date|date:'Y-m-d' }}"
+                                                       data-todate="{{ task.to_date|date:'Y-m-d' }}"
+                                                       data-description="{{ task.description }}"> <!-- Include description in edit -->
+                                                        Edit
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item delete-link" href="#" data-id="{{ task.id }}" data-taskname="{{ task.taskname }}">
+                                                        Delete
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
                                       {% endif %}
                                     </tr>
                                     {% endfor %}
@@ -122,6 +197,27 @@
     </section>
 </main>
 
+<!-- Task Description Modals -->
+{% for task in tasks %}
+<div class="modal fade" id="taskDescriptionModal{{ task.id }}" tabindex="-1" aria-labelledby="taskDescriptionModalLabel{{ task.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDescriptionModalLabel{{ task.id }}">Full Description for {{ task.taskname }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ task.description }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
 <style>
   .faded-task {
       opacity: 0.5;  /* Makes the task appear faded */
@@ -137,56 +233,195 @@
 
 
   
-  <div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <form method="post" action="" id="editProjectForm">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editProjectModalLabel">Edit Project</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editProjectId" name="project_id">
-                    
-                    <div class="col-12">
-                        <label for="editProjectName" class="form-label">Project Name</label>
-                        <input type="text" class="form-control" id="editProjectName" name="projectname" required>
-                    </div>
-
-                    <div class="col-12 mt-4">
-                        <label for="editTaskName" class="form-label">Task Name</label>
-                        <input type="text" class="form-control" id="editTaskName" name="taskname" required>
-                    </div>
-
-                    <div class="col-12 mt-4">
-                        <label for="editPriority" class="form-label">Priority</label>
-                        <select class="form-select" id="editPriority" name="priority" required>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                            <option value="Urgent">Urgent</option>
-                        </select>
-                    </div>
-
-                    <div class="col-12 mt-4">
-                        <label for="editFromDate" class="form-label">From Date</label>
-                        <input type="date" class="form-control" id="editFromDate" name="fromdate" required>
-                    </div>
-
-                    <div class="col-12 mt-4">
-                        <label for="editToDate" class="form-label">To Date</label>
-                        <input type="date" class="form-control" id="editToDate" name="todate" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Update</button>
-                </div>
-            </form>
-        </div>
+  <!-- Modal for Editing Task -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editTaskForm" method="post" action="{% url 'update_task' 0 %}"> <!-- Placeholder for task ID -->
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="editTaskName" class="form-label">Task Name</label>
+            <input type="text" class="form-control" id="editTaskName" name="taskname" required>
+          </div>
+          <div class="mb-3">
+            <label for="editPriority" class="form-label">Priority</label>
+            <select class="form-select" id="editPriority" name="priority" required>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="editFromDate" class="form-label">From Date</label>
+            <input type="date" class="form-control" id="editFromDate" name="fromdate" required>
+          </div>
+          <div class="mb-3">
+            <label for="editToDate" class="form-label">To Date</label>
+            <input type="date" class="form-control" id="editToDate" name="todate" required>
+          </div>
+          <div class="mb-3">
+            <label for="editDescription" class="form-label">Description</label>
+            <textarea class="form-control" id="editDescription" name="description" rows="3" required></textarea>
+          </div>
+          <input type="hidden" id="editTaskId" name="task_id"> <!-- Hidden input for task ID -->
+          <button type="submit" class="btn btn-primary">Update Task</button>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  const editLinks = document.querySelectorAll('.edit-link');
+  const editTaskModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+
+  editLinks.forEach(link => {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      const taskId = this.getAttribute('data-id');
+      const taskName = this.getAttribute('data-taskname');
+      const priority = this.getAttribute('data-priority');
+      const fromDate = this.getAttribute('data-fromdate');
+      const toDate = this.getAttribute('data-todate');
+      const description = this.getAttribute('data-description'); // Ensure this is included
+
+      // Populate modal form with the data
+      document.getElementById('editTaskId').value = taskId;
+      document.getElementById('editTaskName').value = taskName;
+      document.getElementById('editPriority').value = priority;
+      document.getElementById('editFromDate').value = fromDate;
+      document.getElementById('editToDate').value = toDate;
+      document.getElementById('editDescription').value = description; // Populate the description field
+
+      // Update the form action
+      const updateTaskUrl = `{% url 'update_task' 0 %}`.replace("0", taskId); // Ensure you replace the placeholder
+      document.getElementById('editTaskForm').action = updateTaskUrl;
+
+      // Show the modal
+      editTaskModal.show();
+    });
+  });
+});
+
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const editTaskForm = document.getElementById('editTaskForm');
+    
+    editTaskForm.addEventListener('submit', function (e) {
+      e.preventDefault(); // Prevent default form submission
+
+      const taskId = document.getElementById('editTaskId').value;
+      const url = `/task/update/${taskId}/`;  // Ensure this matches your Django URL pattern
+
+      const formData = new FormData(editTaskForm); // Collect form data
+
+      // Send the AJAX request to update the task
+      fetch(url, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken') // Ensure CSRF token is included
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json(); // Parse JSON response
+      })
+      .then(data => {
+        if (data.status === 'success') {
+          // Handle success (e.g., close the modal, show success message)
+          alert('Task updated successfully!');
+          location.reload(); // Reload the page to show updated data
+        } else {
+          // Handle error
+          alert('Error updating task');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.'); // General error message
+      });
+    });
+  });
+</script>
+
+<!-- SweetAlert JavaScript -->
+<script>
+  // Function to get CSRF token from cookies
+function getCSRFToken() {
+    let csrfToken = null;
+    const cookies = document.cookie.split(';');
+    cookies.forEach(cookie => {
+        const parts = cookie.trim().split('=');
+        if (parts[0] === 'csrftoken') {
+            csrfToken = decodeURIComponent(parts[1]);
+        }
+    });
+    return csrfToken;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteLinks = document.querySelectorAll('.delete-link');
+
+    deleteLinks.forEach(link => {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();  // Prevent default link behavior
+            
+            const taskId = this.getAttribute('data-id');
+            
+            
+            const taskName = this.getAttribute('data-taskname');
+            
+
+            // Show SweetAlert confirmation
+            Swal.fire({
+
+                title: `Are you sure you want to delete task "${taskName}"?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No, cancel!',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send delete request via JavaScript
+                    fetch(`/delete_task/${taskId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken()  // Get CSRF token from cookies
+                        },
+                    }).then(response => {
+                        if (response.ok) {
+                            Swal.fire(
+                                'Deleted!',
+                                'Your task has been deleted.',
+                                'success'
+                            ).then(() => {
+                                location.reload();  // Reload the page after deletion
+                            });
+                        } else {
+                            Swal.fire('Error!', 'There was a problem deleting the task.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    });
+});
+
+</script>
+
 
 
 
@@ -239,24 +474,6 @@
 
 </script>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll('.delete-link').forEach(function (link) {
-      link.addEventListener('click', function (e) {
-        e.preventDefault(); // Prevent default action
-
-        var taskId = this.getAttribute('data-id');
-        var projectName = this.getAttribute('data-projectname');
-
-        // Confirmation dialog
-        if (confirm("Are you sure you want to delete this task from project: " + projectName + "?")) {
-          // Redirect to the delete view after confirmation
-          window.location.href = `/delete_task/${taskId}/`;
-        }
-      });
-    });
-  });
-</script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
