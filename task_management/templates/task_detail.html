@@ -5,8 +5,15 @@
 
 
 <body>
+<!-- Include Select2 CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Include jQuery and Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+
 
 
  
@@ -26,7 +33,8 @@
 
     <section class="section">
       <div class="row">
-        <div class="col-lg-12">              
+        <div class="col-lg-12">
+                        
            <!-- Button to toggle visibility of the card -->
 <button id="projectbtn" class="btn btn-primary mb-3">Create Task</button>
 
@@ -42,7 +50,7 @@
 
       <form class="row g-3 needs-validation" method="post" action="{% url 'create_task' selected_project.id user.id %}" novalidate>
         {% csrf_token %}
-        
+    
         <div class="col-md-6">
             <label for="taskname" class="form-label">Task name <span class="text-danger">*</span></label>
             <input type="text" class="form-control" id="taskname" name="taskname" required>
@@ -76,43 +84,72 @@
             <div class="invalid-feedback">Please enter a description for the task.</div>
         </div>
     
+        <div class="col-md-12" id="selected_users_field">
+            <label for="selected_users" class="form-label">Select Users</label>
+            <select class="select2" id="selected_users" name="selected_users" multiple="multiple" onchange="toggleCheckbox()">
+                {% for user in available_users %}
+                    <option value="{{ user.id }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    
         <div class="col-md-12">
-          <input type="checkbox" id="is_child_checkbox" name="is_child" onclick="toggleParentTaskField()">
-          <label for="is_child_checkbox" class="form-label">Is Child</label>
-      </div>
-      
-      <div class="col-md-12" id="parent_task_field" style="display: none;">
-          <label for="parent_task" class="form-label">Select Parent Task</label>
-          <select class="form-select" id="parent_task" name="parent_task">
-              <option value="">Select Task</option>
-              {% for task in all_tasks %}
-                  <option value="{{ task.id }}">{{ task.taskname }}</option>
-              {% endfor %}
-          </select>
-          <div class="invalid-feedback">Please select a parent task if "Is Child" is checked.</div>
-      </div>
-      
+            <input type="checkbox" id="is_child_checkbox" name="is_child" onclick="toggleParentTaskField()">
+            <label for="is_child_checkbox" class="form-label">Is Child</label>
+        </div>
     
-      <script>
-        function toggleParentTaskField() {
-            var isChildCheckbox = document.getElementById('is_child_checkbox');
-            var parentTaskField = document.getElementById('parent_task_field');
-            var parentTaskSelect = document.getElementById('parent_task');
-    
-            if (isChildCheckbox.checked) {
-                parentTaskField.style.display = 'block';
-                parentTaskSelect.setAttribute('required', 'required');  // Make parent task mandatory
-            } else {
-                parentTaskField.style.display = 'none';
-                parentTaskSelect.removeAttribute('required');  // Remove the required attribute when unchecked
-            }
-        }
-    </script>
+        <div class="col-md-12" id="parent_task_field" style="display: none;">
+            <label for="parent_task" class="form-label">Select Parent Task</label>
+            <select class="form-select select2" id="parent_task" name="parent_task">
+                <option value="">Select Task</option>
+                {% for task in all_tasks %}
+                    <option value="{{ task.id }}">
+                        {{ task.taskname }} - ({{ task.user.username }}) - ({{ task.created_at|date:"Y-m-d" }})
+                    </option>
+                {% endfor %}
+            </select>
+            <div class="invalid-feedback">Please select a parent task if "Is Child" is checked.</div>
+        </div>
     
         <div class="col-12">
             <button class="btn btn-primary" type="submit">Assign</button>
         </div>
     </form>
+    
+    <script>
+      function toggleParentTaskField() {
+        
+          const checkbox = document.getElementById('is_child_checkbox');
+          const parentTaskField = document.getElementById('parent_task_field');
+          const level2UsersField = document.getElementById('selected_users_field');
+          const level2UsersSelect = document.getElementById('selected_users');
+    
+          if (checkbox.checked) {
+            
+              parentTaskField.style.display = "block"; // Show the parent task field
+              level2UsersField.disabled = checkbox.checked; // Hide the Level 2 Users field
+              level2UsersSelect.disabled = true; // Disable the Level 2 Users select field
+          } else {
+            
+              parentTaskField.style.display = "none"; // Hide the parent task field
+              level2UsersField.style.display = "block"; // Show the Level 2 Users field
+              level2UsersSelect.disabled = false; // Enable the Level 2 Users select field
+          }
+      }
+    
+      function toggleCheckbox() {
+          const checkbox = document.getElementById('is_child_checkbox');
+          const level2UsersSelect = document.getElementById('selected_users');
+    
+          if (level2UsersSelect.selectedOptions.length > 0) {
+              checkbox.disabled = true; // Disable checkbox
+          } else {
+              checkbox.disabled = false; // Enable checkbox
+          }
+      }
+    </script>
+    
+    
     
     </div>
   </div>
@@ -296,21 +333,41 @@
 
 
 
+  <!-- Script to Toggle Form and Initialize Select2 -->
   <script>
     document.getElementById("projectbtn").addEventListener("click", function() {
-      var card = document.getElementById("projectCard");
-      var button = document.getElementById("projectbtn");
-      
-      // Toggle visibility
-      if (card.style.display === "none" || card.style.display === "") {
-        card.style.display = "block";
-        button.textContent = "Close Task"; // Change button text to "Close Project"
-      } else {
-        card.style.display = "none";
-        button.textContent = "Create Task"; // Change button text back to "Create Project"
-      }
+        var card = document.getElementById("projectCard");
+        var button = document.getElementById("projectbtn");
+
+        // Toggle visibility
+        if (card.style.display === "none" || card.style.display === "") {
+            card.style.display = "block";
+            button.textContent = "Close Task"; // Change button text to "Close Task"
+
+            // Reinitialize Select2 for the now-visible dropdown
+            $('#selected_users').select2({
+                placeholder: "Select users", // Placeholder text
+                allowClear: true,           // Allow clearing selection
+                dropdownParent: $('#projectCard'), // Render within the card
+                width: '100%'               // Set width to full container width
+            });
+        } else {
+            card.style.display = "none";
+            button.textContent = "Create Task"; // Change button text back to "Create Task"
+        }
     });
-  </script>
+
+    // Initialize Select2 on page load for all select elements
+    $(document).ready(function() {
+        $('.select2').select2({
+            placeholder: "Select users", // Placeholder text
+            allowClear: true,           // Allow clearing selection
+            width: '100%'               // Set width to full container width
+        });
+    });
+</script>
+
+
   <script>
 
   
@@ -436,6 +493,8 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 
+
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
   const editLinks = document.querySelectorAll('.edit-link');
@@ -515,6 +574,16 @@ document.addEventListener('DOMContentLoaded', function () {
         alert('An error occurred. Please try again.'); // General error message
       });
     });
+  });
+</script>
+<script>
+  $(document).ready(function() {
+      // Initialize Select2 on the dropdown
+      $('#parent_task').select2({
+          placeholder: "Search and select a task", // Placeholder text
+          allowClear: true,                        // Allow users to clear the selection
+          width: '100%'
+      });
   });
 </script>
 

@@ -64,6 +64,8 @@ def todopgt(request):
         projectname = request.POST.get('projectname')
         projectenddate = request.POST.get('projectdate')
         projectstatus = request.POST.get('projectpriority')
+        if Project.objects.filter(projectname=projectname).exists():
+            return JsonResponse({'status': 'error', 'message': 'Project name already exists.'})
 
         print(projectname)
         if projectname:
@@ -299,6 +301,8 @@ def create_project(request, user_id):
         priority = request.POST.get('priority')
         from_date = request.POST.get('fromdate')
         to_date = request.POST.get('todate')
+        if Project.objects.filter(projectname=projectname).exists():
+            return JsonResponse({'status': 'error', 'message': 'Project name already exists, please give a different name'})
 
         try:
             print("try block")
@@ -506,54 +510,104 @@ def task_detail(request, project_id, user_id):
 
     # Fetch all tasks related to this project for parent task dropdown
     all_tasks = Task.objects.filter(project=project)
+    superadmin_group = Group.objects.get(name='Superadmin')
+    excluded_users = User.objects.filter(groups=superadmin_group) | User.objects.filter(id=user_id)
+    available_users = User.objects.exclude(id__in=excluded_users.values_list('id', flat=True))
 
     return render(request, 'task_detail.html', {
         'tasks': tasks,
         'selected_project': project,
         'user': selected_user,
-        'all_tasks': all_tasks  # Passing all tasks for parent task selection
+        'all_tasks': all_tasks,  # Passing all tasks for parent task selection
+        'available_users': available_users
     })
 
+
+from django.contrib.auth.models import User
+
+from django.core.mail import send_mail
+from django.conf import settings
 
 def create_task(request, project_id, user_id):
     if request.method == 'POST':
         project = get_object_or_404(Project, id=project_id)
-        user = get_object_or_404(User, id=user_id)
+        assigning_user = get_object_or_404(User, id=user_id)  # User creating the task
 
         taskname = request.POST.get('taskname')
         priority = request.POST.get('priority')
         from_date = request.POST.get('fromdate')
         to_date = request.POST.get('todate')
         description = request.POST.get('description')
-
         is_child = request.POST.get('is_child') == 'on'
         parent_task_id = request.POST.get('parent_task')
 
-        task = Task.objects.create(
-            taskname=taskname,
-            priority=priority,
-            from_date=from_date,
-            to_date=to_date,
-            project=project,
-            user=user,
-            description=description,
-            is_child=is_child,
-            assigned_by=request.user
-        )
+        # Get selected users
+        selected_user_ids = request.POST.getlist('selected_users')
+        selected_users = User.objects.filter(id__in=selected_user_ids)
 
-        # Create notification for the assigned user
-        Notification.objects.create(
-            user=user,
-            message=f"Task '{taskname}' created by {request.user.username}",
-            assigned_by=request.user
-        )
+        # Add the user specified in the URL
+        selected_users = list(selected_users)  # Convert to list
+        main_user = get_object_or_404(User, id=user_id)
+        if main_user not in selected_users:
+            selected_users.append(main_user)  # Ensure the main user is included
 
-        if is_child and parent_task_id:
-            parent_task = Task.objects.get(id=parent_task_id)
-            task.parent_task = parent_task
-            task.save()
+        # Create tasks for each selected user
+        for user in selected_users:
+            task = Task.objects.create(
+                taskname=taskname,
+                priority=priority,
+                from_date=from_date,
+                to_date=to_date,
+                project=project,
+                user=user,
+                description=description,
+                is_child=is_child,
+                assigned_by=request.user
+            )
 
-        return redirect('task_detail', project_id=project.id, user_id=user.id)
+            # Link parent task if "Is Child" is checked
+            if is_child and parent_task_id:
+                parent_task = Task.objects.get(id=parent_task_id)
+                task.parent_task = parent_task
+                task.save()
+
+            # Create notification for each user
+            Notification.objects.create(
+                user=user,
+                message=f"Task '{taskname}' created by {request.user.username}",
+                assigned_by=request.user
+            )
+
+            # Send email notification to the user
+            if user.email:  # Ensure the user has an email address
+                subject = f"New Task Assigned: {taskname}"
+                message = (
+                    f"Dear {user.username},\n\n"
+                    f"A new task has been assigned to you in the project '{project.projectname}'.\n"
+                    f"Details:\n"
+                    f"Task Name: {taskname}\n"
+                    f"Priority: {priority}\n"
+                    f"From Date: {from_date}\n"
+                    f"To Date: {to_date}\n"
+                    f"Description: {description}\n\n"
+                    f"Please log in to the system to view more details.\n\n"
+                    f"Best regards,\n"
+                    f"{request.user.username}\n\n"
+                    f"This is a system generated email, please do not reply"
+                )
+                try:
+                    send_mail(
+                        subject,
+                        message,
+                        settings.EMAIL_HOST_USER,  # The sender's email address
+                        [user.email],  # List of recipient email addresses
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    # Handle email sending errors
+                    print(f"Failed to send email to {user.email}: {e}")
+
+        return redirect('task_detail', project_id=project.id, user_id=user_id)
 
     
 def mark_notifications_as_read(request):
@@ -585,7 +639,7 @@ def fetch_notifications(request):
 
 @login_required
 def delete_task(request, task_id):
-    print("deleyte task fun")
+    
     if request.method == 'POST':  # Only allow POST request for deletion
         try:
             # Get the task to delete

@@ -1,0 +1,1034 @@
+{% extends 'main.html' %}
+
+
+{% block content %}
+<!-- Include Select2 CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Include jQuery and Select2 JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+<main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>Profile</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item">Users</li>
+          <li class="breadcrumb-item active">Profile</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section profile">
+      <div class="row">
+     
+        <div class="col-xl-12">
+
+          <div class="card">
+            <div class="card-body pt-3">
+              <!-- Bordered Tabs -->
+              <ul class="nav nav-tabs nav-tabs-bordered">
+
+                <li class="nav-item">
+                  <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Apply Leave</button>
+                </li>
+
+                <li class="nav-item">
+                  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-edit">Pending </button>
+                </li>
+
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-history">History </button>
+                  </li>
+
+                <li class="nav-item">
+                  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-settings">Request Pending</button>
+                </li>
+
+                <!-- <li class="nav-item">
+                  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password">Change Password</button>
+                </li> -->
+
+              </ul>
+              <div class="tab-content pt-2">
+
+                <div class="tab-pane fade show active profile-overview" id="profile-overview">
+                    <form class="row g-3 needs-validation mt-3" method="post"  action="{% url 'leave_request' %}" enctype="multipart/form-data" novalidate id="leaveForm" onsubmit="submitLeaveForm(event)">
+                        {% csrf_token %}
+                        
+                        <div class="col-md-12">
+                            <label for="Leave Type" class="form-label">Leave Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="Leave Type" name="LeaveType" required>
+                                <option selected disabled value="">Choose...</option>
+                                <option value="Loss Of pay">Loss Of pay</option>
+                                <option value="Comp-Off">Comp-Off</option>
+                                <option value="Sick Leave probation">Sick Leave probation</option>
+                                <option value="Optional Holiday">Optional Holiday</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a Leave Type.</div>
+                        </div>
+                    
+                        
+                    
+                        <div class="col-md-6">
+                            <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="fromDate" name="fromdate" required>
+                        </div>
+                    
+                        <div class="col-md-6">
+                            <label for="Session" class="form-label">Session <span class="text-danger">*</span></label>
+                            <select class="form-select" id="Session" name="Session1" required>
+                                <option selected disabled value="">Choose...</option>
+                                <option value="Session 1">Session 1</option>
+                                <option value="Session 2">Session 2</option>
+                              
+                            </select>
+                            <div class="invalid-feedback">Please select a Session.</div>
+                        </div>
+                    
+
+                        <div class="col-md-6">
+                            <label for="fromDate" class="form-label">To Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="todate" name="todate" required>
+                        </div>
+                    
+                        <div class="col-md-6">
+                            <label for="Leave Type" class="form-label">Session <span class="text-danger">*</span></label>
+                            <select class="form-select" id="Leave Type" name="Session2" required>
+                                <option selected disabled value="">Choose...</option>
+                                <option value="Session 1">Session 1</option>
+                                <option value="Session 2">Session 2</option>
+                           
+                            </select>
+                            <div class="invalid-feedback">Please select a session.</div>
+                        </div>
+
+                        <!-- <div class="col-md-6">
+                            <label for="Session" class="form-label">Applying To <span class="text-danger">*</span></label>
+                            <input type="text" name="to" value="{{ superadmin_username }}" class="form-control" required  readonly>
+                            <div class="invalid-feedback">Please select a Session.</div>
+                        </div> -->
+                        
+
+                        <!-- <div class="col-md-6">
+                            <label for="cc_users" class="form-label">CC To <span class="text-danger">*</span></label>
+                            <select class="form-control" id="cc_users" name="cc_users[]" multiple="multiple" required>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Please select at least one user.</div>
+                        </div> -->
+
+
+                        <!-- Include Select2 CSS and JS as shown in the previous example -->
+
+                        <!-- Level 1 Users Dropdown -->
+<div class="col-md-6">
+  <label for="level1_users" class="form-label">Level 1 Users <span class="text-danger">*</span></label>
+  <select class="form-control select2" id="level1_users" name="level1_users[]" multiple="multiple" required>
+      {% for user in level1_users %}
+          <option value="{{ user.id }}">{{ user.username }}</option>
+      {% endfor %}
+  </select>
+</div>
+
+<!-- Level 2 Users Dropdown -->
+<div class="col-md-6">
+  <label for="level2_users" class="form-label">Level 2 Users <span class="text-danger">*</span></label>
+  <select class="form-control select2" id="level2_users" name="level2_users[]" multiple="multiple" required>
+      {% for user in level2_users %}
+          <option value="{{ user.id }}">{{ user.username }}</option>
+      {% endfor %}
+  </select>
+</div>
+
+<div class="col-md-6">
+    <label for="level3_users" class="form-label">Level 3 Users <span class="text-danger">*</span></label>
+    <select class="form-control select2" id="level3_users" name="level3_users[]" multiple="multiple" required>
+        {% for user in level3_users %}
+            <option value="{{ user.id }}">{{ user.username }}</option>
+        {% endfor %}
+    </select>
+  </div>
+
+
+
+                        
+                        
+                        
+                    
+                        <div class="col-md-12">
+                            <label for="Reason" class="form-label">Reason <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="Reason" name="Reason" rows="4" required></textarea>
+                            <div class="invalid-feedback">Please enter a Reason.</div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label for="Reason" class="form-label">Attach File</label>
+                            <input type="file" class="form-control" id="file" name="file"></textarea>
+
+                            <!-- Allowed file types information -->
+    <div class="mt-2 text-muted">
+        Allowed File Types: pdf,  xls,  xlsx,  doc,  docx,  txt,  ppt,  pptx,  jpg,  jpeg,  png.
+    </div>
+                        </div>
+
+                     
+
+
+
+                    
+                       
+                     
+                    
+                  
+                    
+                        <div class="col-12">
+                            <button class="btn btn-primary" type="submit">Apply Leave</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
+
+                  <!-- Profile Edit Form -->
+
+            {% for leave_request in user_leave_requests %}
+            {% if leave_request.status == 'Pending' %}
+            <form>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="leaveType" class="col-form-label">Leave Type</label>
+                        <input name="leaveType" type="text" class="form-control" value="{{ leave_request.leave_type }}" readonly>
+                    </div>
+                    <!-- <div class="col-md-4">
+                      <label for="Session" class="col-form-label">Applying To</label>
+                      <input type="text" name="to" value="{{ superadmin_username }}" class="form-control" readonly>
+                  </div> -->
+                    <div class="col-md-4">
+                        <label for="noOfDays" class="col-form-label">No Of Days</label>
+                        <input name="noOfDays" type="text" class="form-control" value="{{ leave_request.no_of_days }}" readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="fromDate" class="col-form-label">From Date</label>
+                        <input name="fromDate" type="text" class="form-control" value="{{ leave_request.from_date }}" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="toDate" class="col-form-label">To Date</label>
+                        <input name="toDate" type="text" class="form-control" value="{{ leave_request.to_date }}" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="sessionFrom" class="col-form-label">Session From</label>
+                        <input name="sessionFrom" type="text" class="form-control" value="{{ leave_request.session_from }}" readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="sessionTo" class="col-form-label">Session To</label>
+                        <input name="sessionTo" type="text" class="form-control" value="{{ leave_request.session_to }}" readonly>
+                    </div>
+                    <div class="col-md-4">
+                      <label for="reason" class="col-form-label">Reason</label>
+                      <textarea name="reason" class="form-control" rows="3" readonly>{{ leave_request.reason }}</textarea>
+                  </div>
+                  
+                    <div class="col-md-4">
+                        <label for="status" class="col-form-label">Status</label>
+                        <input name="status" type="text" class="form-control" value="{{ leave_request.status }}" readonly>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="createdAt" class="col-form-label">Created At</label>
+                        <input name="createdAt" type="text" class="form-control" value="{{ leave_request.created_at }}" readonly>
+                    </div>
+            
+                    <div class="col-md-4">
+                      <label for="fileUpload" class="col-form-label">Uploaded File</label>
+                      {% if leave_request.file %}
+                          {% with ext=leave_request.file.url|slice:":-4" %}
+                              {% if ext == '.pdf' %}
+                                  <iframe src="{{ leave_request.file.url }}" style="width:100%; height:200px;" frameborder="0"></iframe>
+                              {% elif ext == '.jpg' or ext == '.jpeg' or ext == '.png' %}
+                                  <img src="{{ leave_request.file.url }}" alt="File Preview" style="max-width: 100%; height: auto;">
+                              {% elif ext == '.doc' or ext == '.docx' %}
+                                  <a href="{{ leave_request.file.url }}" target="_blank">View Document</a>
+                              {% elif ext == '.xls' or ext == '.xlsx' %}
+                                  <a href="{{ leave_request.file.url }}" target="_blank">View Spreadsheet</a>
+                              {% else %}
+                                  <a href="{{ leave_request.file.url }}" target="_blank">View File</a>
+                              {% endif %}
+                          {% endwith %}
+                      {% else %}
+                          <p>No file uploaded.</p>
+                      {% endif %}
+                  </div>
+                </div>
+            </form>
+            <button class="btn btn-danger" onclick="withdrawLeave('{{ leave_request.id }}')">Withdraw</button>
+            
+            
+            
+            
+            <hr style="border: 2px solid #000; margin-top: 20px; margin-bottom: 20px;">
+            {% endif %}
+            {% empty %}
+            <p>No leave requests found.</p>
+            {% endfor %}
+            
+                            
+                              
+                              
+                              <!-- End Profile Edit Form -->
+
+                </div>
+
+                <div class="tab-pane fade pt-3" id="profile-history">
+                    <!-- My Leave Requests Table -->
+                    <form>
+                       
+                        <div class="table-responsive">
+                            <table class="table datatable">
+                                <thead>
+                                    <tr>
+                                        <th class="text-nowrap">User</th>
+                                        <th class="text-nowrap">Leave Type</th>
+                                        <th class="text-nowrap">Created At</th>
+                                        <th class="text-nowrap">From Date</th>
+                                        <th class="text-nowrap">To Date</th>
+                                        <th class="text-nowrap">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for leave_request in user_leave_requests %}
+                                        <tr class="text-nowrap">
+                                            <td class="text-nowrap">{{ leave_request.user.username }}</td>
+                                            <td class="text-nowrap">{{ leave_request.leave_type }}</td>
+                                            <td class="text-nowrap">{{ leave_request.created_at }}</td>
+                                            <td class="text-nowrap">{{ leave_request.from_date }}</td>
+                                            <td class="text-nowrap">{{ leave_request.to_date }}</td>
+                                            <td class="text-nowrap">
+                                                {% if leave_request.status == 'Pending' %}
+                                                    Pending at Level {{ leave_request.current_level }}
+                                                {% else %}
+                                                    {{ leave_request.status }}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="tab-pane fade pt-3" id="profile-settings">
+                    <!-- Leave Requests Pending My Approval Table -->
+                    <form>
+            
+                        <div class="table-responsive">
+                            <table class="table datatable">
+                                <thead>
+                                    <tr>
+                                        <th class="text-nowrap">User</th>
+                                        <th class="text-nowrap">Leave Type</th>
+                                        <th class="text-nowrap">Created At</th>
+                                        <th class="text-nowrap">From Date</th>
+                                        <th class="text-nowrap">To Date</th>
+                                        <th class="text-nowrap">Status</th>
+                                        <th class="text-nowrap">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for leave_request in pending_approval_requests %}
+                                        <tr class="text-nowrap">
+                                            <td class="text-nowrap">{{ leave_request.user.username }}</td>
+                                            <td class="text-nowrap">{{ leave_request.leave_type }}</td>
+                                            <td class="text-nowrap">{{ leave_request.created_at }}</td>
+                                            <td class="text-nowrap">{{ leave_request.from_date }}</td>
+                                            <td class="text-nowrap">{{ leave_request.to_date }}</td>
+                                            <td class="text-nowrap">{{ leave_request.status }}</td>
+                                            <td class="text-nowrap">
+                                                {% if leave_request.status == 'Pending' %}
+                                                    {% if leave_request.current_level == 1 and request.user in leave_request.level1_approvers.all %}
+                                                        <a href="{% url 'approve_leave' leave_request.id %}" class="btn btn-primary" id="approveBtn">Approve</a>
+                                                       <!-- Reject Button -->
+<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#basicModal" data-leave-id="{{ leave_request.id }}">
+    Reject
+  </button>
+     
+  
+  <!-- Modal Structure -->
+  <div class="modal fade" id="basicModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Leave Rejected Reason</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <textarea class="form-control" id="reasonInput" name="Reason" rows="2" placeholder="Enter your Reason" required></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <!-- This is now an anchor tag that will use JavaScript for the POST request -->
+          <a href="#" class="btn btn-danger" id="submitReject">Reject</a>
+        </div>
+      </div>
+    </div>
+  </div>
+                                                    {% elif leave_request.current_level == 2 and request.user in leave_request.level2_approvers.all %}
+                                                        <a href="{% url 'approve_leave' leave_request.id %}" class="btn btn-primary" id="approveBtn2">Approve</a>
+                                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#basicModal2" data-leave-id="{{ leave_request.id }}">
+                                                            Reject
+                                                          </button>
+        
+        
+                                                          
+        <!-- Modal Structure -->
+        <div class="modal fade" id="basicModal2" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Leave Rejected Reason</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <textarea class="form-control" id="reasonInput" name="Reason" rows="2" placeholder="Enter your Reason" required></textarea>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <!-- This is now an anchor tag that will use JavaScript for the POST request -->
+                <a href="#" class="btn btn-danger" id="submitReject">Reject</a>
+              </div>
+            </div>
+          </div>
+        </div>
+                                                          
+                                                          
+                                                          
+                                                          
+                                                         
+                                                    {% elif leave_request.current_level == 3 and request.user in leave_request.level3_approvers.all %}
+                                                        <a href="{% url 'approve_leave' leave_request.id %}" class="btn btn-primary" id="approveBtn3">Approve</a>
+                                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#basicModal3" data-leave-id="{{ leave_request.id }}">
+                                                            Reject
+                                                          </button>
+        
+        
+                                                          
+        <!-- Modal Structure -->
+        <div class="modal fade" id="basicModal3" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Leave Rejected Reason</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <textarea class="form-control" id="reasonInput" name="Reason" rows="2" placeholder="Enter your Reason" required></textarea>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <!-- This is now an anchor tag that will use JavaScript for the POST request -->
+                <a href="#" class="btn btn-danger" id="submitReject">Reject</a>
+              </div>
+            </div>
+          </div>
+        </div>
+                                                    {% else %}
+                                                        Pending at Level {{ leave_request.current_level }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    {{ leave_request.status }}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                
+                                        <!-- Reject Modal -->
+                                        <div class="modal fade" id="rejectModal{{ leave_request.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Leave Rejection Reason</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="post" action="{% url 'reject_leave' leave_request.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <textarea class="form-control" name="Reason" rows="2" placeholder="Enter your reason" required></textarea>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                            <button type="submit" class="btn btn-danger">Reject</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+                
+                
+
+                <div class="tab-pane fade pt-3" id="profile-change-password">
+                  <!-- Change Password Form -->
+                  <form>
+
+                    <div class="row mb-3">
+                      <label for="currentPassword" class="col-md-4 col-lg-3 col-form-label">Current Password</label>
+                      <div class="col-md-8 col-lg-9">
+                        <input name="password" type="password" class="form-control" id="currentPassword">
+                      </div>
+                    </div>
+
+                    <div class="row mb-3">
+                      <label for="newPassword" class="col-md-4 col-lg-3 col-form-label">New Password</label>
+                      <div class="col-md-8 col-lg-9">
+                        <input name="newpassword" type="password" class="form-control" id="newPassword">
+                      </div>
+                    </div>
+
+                    <div class="row mb-3">
+                      <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label">Re-enter New Password</label>
+                      <div class="col-md-8 col-lg-9">
+                        <input name="renewpassword" type="password" class="form-control" id="renewPassword">
+                      </div>
+                    </div>
+
+                    <div class="text-center">
+                      <button type="submit" class="btn btn-primary">Change Password</button>
+                    </div>
+                  </form><!-- End Change Password Form -->
+
+                </div>
+
+              </div><!-- End Bordered Tabs -->
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main><!-- End #main -->
+
+
+  
+<style>
+  /* Style to make the level 3 users appear like a read-only dropdown */
+  .readonly-users-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      background-color: #f0f0f0;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+  }
+
+  .readonly-user {
+      background-color: #e0e0e0;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 14px;
+  }
+</style>
+  <script>
+    $(document).ready(function() {
+        $('#cc_users').select2({
+            allowClear: true
+        });
+    });
+</script>
+
+<!-- SweetAlert and JavaScript for AJAX -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+function withdrawLeave(leaveId) {
+    // Confirm the withdrawal action
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, withdraw it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with withdrawal logic (e.g., making an AJAX call)
+            fetch(`/withdraw_leave/${leaveId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}' // Ensure this token is correctly set
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+         
+            .then(data => {
+    if (data.status === 'success') {
+        // Display success message and keep it visible
+        Swal.fire({
+            title: 'Withdrawn!',
+            text: 'Your leave request has been withdrawn.',
+            icon: 'success',
+            showCloseButton: true,  // Optionally show a close button
+            timer: 1000,            // Keep the message visible for 5 seconds
+            timerProgressBar: true   // Show a progress bar indicating how much time is left
+        }).then((result) => {
+            // Optional: reload the page after the message is closed
+            if (result.dismiss === Swal.DismissReason.timer) {
+                location.reload();  // Reloads the page to reflect changes
+            }
+        });
+    } else {
+        Swal.fire('Error!', data.message, 'error');
+    }
+})
+
+            .catch(error => {
+                console.error('Error occurred:', error); // Log the error for debugging
+                Swal.fire('Error!', 'Something went wrong! Please try again later.', 'error');
+            });
+        }
+    });
+}
+</script>
+
+
+<!-- Initialize Select2 for each dropdown -->
+<script>
+  $(document).ready(function() {
+      $('#level1_users, #level2_users, #level3_users').select2({
+          placeholder: "Select users",
+          allowClear: true
+      });
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function submitLeaveForm(event) {
+    event.preventDefault();
+
+    const formData = new FormData(document.getElementById('leaveForm'));
+
+    // Show loading spinner while processing
+    const loadingAlert = Swal.fire({
+        title: 'Processing...',
+        html: 'Please wait while we pass your leave request.',
+        didOpen: () => {
+            Swal.showLoading();
+        },
+        willClose: () => {
+            Swal.hideLoading(); // Hide loading spinner when the alert is closed
+        }
+    });
+
+    fetch("{% url 'leave_request' %}", {  // Use the correct URL name
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Close the loading alert
+        loadingAlert.close();
+
+        if (data.status === "success") {
+            Swal.fire({
+                title: "Leave Applied Successfully!",
+                text: "Your leave request has been submitted.",
+                icon: "success",
+                confirmButtonText: 'OK'
+            }).then(() => {
+                // Redirect to the leave page after acknowledging the success alert
+                window.location.href = "/leave/"; // Corrected URL
+            });
+        } else {
+            Swal.fire({
+                title: "Error",
+                text: data.message,
+                icon: "error",
+                confirmButtonText: 'OK'
+            });
+        }
+    })
+    .catch(error => {
+        // Close the loading alert if there's an error
+        loadingAlert.close();
+        Swal.fire({
+            title: "Error",
+            text: "Something went wrong!",
+            icon: "error",
+            confirmButtonText: 'OK'
+        });
+    });
+}
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const rejectButton = document.getElementById('submitReject');
+      const modal = document.getElementById('basicModal');
+  
+      modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const leaveId = button.getAttribute('data-leave-id');
+        rejectButton.setAttribute('data-leave-id', leaveId);
+      });
+  
+      rejectButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        const leaveId = event.target.getAttribute('data-leave-id');
+        const reason = document.getElementById('reasonInput').value;
+  
+        fetch(`/leave/${leaveId}/reject/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ Reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Close the modal programmatically
+            $('#basicModal').modal('hide');
+            
+            // Display SweetAlert success message and reload the page
+            Swal.fire({
+              icon: 'success',
+              title: 'Leave request rejected successfully',
+              showConfirmButton: false,
+              timer: 1500
+            }).then(() => {
+              location.reload(); // Reloads the page to update the status
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed to reject the leave request',
+              text: data.error || 'An error occurred while processing your request.'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'Please try again later.'
+          });
+        });
+      });
+    });
+  </script>
+  
+  
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const rejectButton = document.getElementById('submitReject');
+      const modal = document.getElementById('basicModal2');
+  
+      modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const leaveId = button.getAttribute('data-leave-id');
+        rejectButton.setAttribute('data-leave-id', leaveId);
+      });
+  
+      rejectButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        const leaveId = event.target.getAttribute('data-leave-id');
+        const reason = document.getElementById('reasonInput').value;
+  
+        fetch(`/leave/${leaveId}/reject/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ Reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Close the modal programmatically
+            $('#basicModal2').modal('hide');
+            
+            // Display SweetAlert success message and reload the page
+            Swal.fire({
+              icon: 'success',
+              title: 'Leave request rejected successfully',
+              showConfirmButton: false,
+              timer: 1500
+            }).then(() => {
+              location.reload(); // Reloads the page to update the status
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed to reject the leave request',
+              text: data.error || 'An error occurred while processing your request.'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'Please try again later.'
+          });
+        });
+      });
+    });
+  </script>
+  
+  
+  
+  
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const rejectButton = document.getElementById('submitReject');
+      const modal = document.getElementById('basicModal3');
+  
+      modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const leaveId = button.getAttribute('data-leave-id');
+        rejectButton.setAttribute('data-leave-id', leaveId);
+      });
+  
+      rejectButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        const leaveId = event.target.getAttribute('data-leave-id');
+        const reason = document.getElementById('reasonInput').value;
+  
+        fetch(`/leave/${leaveId}/reject/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ Reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Close the modal programmatically
+            $('#basicModal3').modal('hide');
+            
+            // Display SweetAlert success message and reload the page
+            Swal.fire({
+              icon: 'success',
+              title: 'Leave request rejected successfully',
+              showConfirmButton: false,
+              timer: 1500
+            }).then(() => {
+              location.reload(); // Reloads the page to update the status
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed to reject the leave request',
+              text: data.error || 'An error occurred while processing your request.'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'An error occurred',
+            text: 'Please try again later.'
+          });
+        });
+      });
+    });
+  </script>
+
+<script>
+    // Function to dynamically load leave data using the leave_id
+    function loadLeaveData(leaveId) {
+        fetch(`/workflow/leave/${leaveId}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Populate form fields with data from JSON response
+                document.getElementById("leaveType").value = data.leave_type;
+                document.getElementById("status").value = data.status;
+                document.getElementById("reason").value = data.rejection_reason;
+            } else {
+                alert(data.error || 'Error loading leave data');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+    // Get the leave_id from the current page URL dynamically
+    const urlParams = new URLSearchParams(window.location.search);
+    const leaveId = urlParams.get('leave_id');  // Assuming the URL is something like /workflow/leave/?leave_id=132
+    
+    // If the leave_id exists in the URL, load the leave data
+    if (leaveId) {
+        loadLeaveData(leaveId);
+    }
+    </script>
+
+<script>
+    document.getElementById('approveBtn').addEventListener('click', function(event) {
+        // Prevent the default behavior (navigation)
+        event.preventDefault();
+  
+        // Show SweetAlert with a progress bar
+        Swal.fire({
+            title: 'Approving Leave...',
+            html: 'Please wait while we process your request.',
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+  
+        // Simulate an AJAX request or trigger the Django view
+        // We will use fetch to simulate a post request here, 
+        // but in a real implementation, you can do an AJAX request.
+        fetch(this.href, { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                // Check if the request was successful
+                if (data.status === 'error') {
+                    Swal.fire('Error', data.message, 'error');
+                } else {
+  
+                  Swal.fire({
+    icon: 'success',
+    title: 'Leave request Approved successfully',
+    showConfirmButton: false,
+    timer: 1500
+  }).then(() => {
+    location.reload(); // Reloads the page to update the status
+  });              }
+            })
+            .catch(error => {
+                // Handle errors
+                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            });
+    });
+  </script>
+
+<script>
+    document.getElementById('approveBtn2').addEventListener('click', function(event) {
+        // Prevent the default behavior (navigation)
+        event.preventDefault();
+  
+        // Show SweetAlert with a progress bar
+        Swal.fire({
+            title: 'Approving Leave...',
+            html: 'Please wait while we process your request.',
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+  
+        // Simulate an AJAX request or trigger the Django view
+        // We will use fetch to simulate a post request here, 
+        // but in a real implementation, you can do an AJAX request.
+        fetch(this.href, { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                // Check if the request was successful
+                if (data.status === 'error') {
+                    Swal.fire('Error', data.message, 'error');
+                } else {
+  
+                  Swal.fire({
+    icon: 'success',
+    title: 'Leave request Approved successfully',
+    showConfirmButton: false,
+    timer: 1500
+  }).then(() => {
+    location.reload(); // Reloads the page to update the status
+  });              }
+            })
+            .catch(error => {
+                // Handle errors
+                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            });
+    });
+  </script>
+
+<script>
+    document.getElementById('approveBtn3').addEventListener('click', function(event) {
+        // Prevent the default behavior (navigation)
+        event.preventDefault();
+  
+        // Show SweetAlert with a progress bar
+        Swal.fire({
+            title: 'Approving Leave...',
+            html: 'Please wait while we process your request.',
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+  
+        // Simulate an AJAX request or trigger the Django view
+        // We will use fetch to simulate a post request here, 
+        // but in a real implementation, you can do an AJAX request.
+        fetch(this.href, { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                // Check if the request was successful
+                if (data.status === 'error') {
+                    Swal.fire('Error', data.message, 'error');
+                } else {
+  
+                  Swal.fire({
+    icon: 'success',
+    title: 'Leave request Approved successfully',
+    showConfirmButton: false,
+    timer: 1500
+  }).then(() => {
+    location.reload(); // Reloads the page to update the status
+  });              }
+            })
+            .catch(error => {
+                // Handle errors
+                Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            });
+    });
+  </script>
+
+{% endblock content %}

@@ -115,6 +115,7 @@ class Task(models.Model):
 
     # Field for storing the date and time when status is updated
     status_updated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     # New field to track who assigned the task
     assigned_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='assigned_tasks')
