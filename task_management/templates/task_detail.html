@@ -48,7 +48,7 @@
       <!-- Custom Styled Validation -->
 
 
-      <form class="row g-3 needs-validation" method="post" action="{% url 'create_task' selected_project.id user.id %}" novalidate>
+      <form class="row g-3 needs-validation" id="createtask" method="post" action="{% url 'create_task' selected_project.id user.id %}" novalidate>
         {% csrf_token %}
     
         <div class="col-md-6">
@@ -174,7 +174,7 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="text-nowrap">
                     {% if tasks %}
                         {% for task in tasks %}
                         <tr>
@@ -586,6 +586,54 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 </script>
+
+ 
+<script>
+  $(document).ready(function () {
+      $('#createtask').on('submit', function (e) {
+          e.preventDefault(); // Prevent the default form submission
+ 
+          Swal.fire({
+              title: 'Processing...',
+              text: 'Please wait while your request is being processed.',
+              allowOutsideClick: false,
+              didOpen: () => {
+                  Swal.showLoading();
+              }
+          });
+ 
+          $.ajax({
+              url: $(this).attr('action'),
+              type: $(this).attr('method'),
+              data: $(this).serialize(),
+              success: function (response) {
+                  Swal.fire({
+                      icon: 'success',
+                      title: 'Success!',
+                      text: 'The task has been successfully created and emails have been sent.',
+                  }).then(() => {
+                      // Redirect to the task details page
+                      location.reload();
+ 
+                  });
+              },
+              error: function (xhr) {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error!',
+                      text: 'Something went wrong. Please try again.',
+                  });
+              }
+          });
+      });
+  });
+</script>
+ 
+ 
+ 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ 
+ 
 
 
 </body>

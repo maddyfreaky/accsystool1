@@ -118,9 +118,14 @@
         <li class="nav-item dropdown pe-3">
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <i class="ri-user-3-fill" style="font-size: 25px;"></i>  <!-- Add the icon here -->
+            {% if user_profile.image %}
+            <img src="{{ user_profile.image.url }}" alt="Profile" class="w-50 rounded-circle" id="profileImage">
+        {% else %}
+            <i class="ri-user-3-fill" style="font-size: 25px;"></i> <!-- Show icon when image doesn't exist -->
+        {% endif %}
+       
             <span class="d-none d-md-block dropdown-toggle ps-2">{{ request.user.username }}</span>
-          </a>
+        </a>
           
           <!-- End Profile Iamge Icon -->
 
@@ -139,7 +144,15 @@
               <hr class="dropdown-divider">
             </li>
 
-            
+            <li>
+              <form method="POST" action="{% url 'userprofile' %}" style="display:inline;">
+                {% csrf_token %}
+                  <button type="submit" class="dropdown-item d-flex align-items-center">
+                    <i class="bi bi-person"></i>
+                    <span>My Profile</span>
+                  </button>
+                </form>
+            </li>
             
 
             <li>

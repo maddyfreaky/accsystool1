@@ -1,0 +1,150 @@
+{% extends 'main.html' %}
+{% load static %}
+ 
+{% block content %}
+ 
+ 
+<body>
+ 
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ 
+  <!-- Include jQuery and Select2 JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+ 
+ 
+ 
+  <main id="main" class="main">
+ 
+    <div class="pagetitle">
+      <h1>GST-1</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'workflowmgt' %}">workflowmgt</a></li>
+          <li class="breadcrumb-item active">GST-1</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+ 
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">              
+           <!-- Button to toggle visibility of the card -->
+<button id="projectbtn" class="btn btn-primary mb-3">Upload Files</button>
+ 
+<!-- Initially hidden card -->
+<div class="col-lg-12" id="projectCard" style="display: none;">
+  <div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title">Project Creation</h5>
+            <div>
+                <a href="{% url 'download_sample_book' %}" class="btn btn-primary me-2">Download Sample book</a>
+                <a href="{% url 'download_sample_portal' %}" class="btn btn-primary me-2">Download Sample Portal</a>             </div>
+          </div>
+         
+   
+          <form method="post" enctype="multipart/form-data" action="{% url 'validate_files' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="book" class="form-label">Attach Book File</label>
+                <input type="file" name="book" id="book" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="portal" class="form-label">Attach Portal File</label>
+                <input type="file" name="portal" id="portal" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        
+        {% if error %}
+        <div class="alert alert-danger mt-3">
+            {{ error }}
+        </div>
+        {% endif %}    
+    </div>
+  </div>
+</div>
+ 
+ 
+ 
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title"> Project List</h5>
+ 
+ 
+              <table class="table datatable" id="userTable">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+ 
+                        <th>Action</th>
+ 
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                      <td>
+        1
+                       
+                    </td>                    
+                        <td>2</td>
+                        <td>3</td>
+                        <td>
+                            4
+                        </td>
+                       
+                        <td>
+                          5                        </td>
+                       
+                   
+                       
+ 
+                       
+ 
+                    </tr>
+               
+                 
+               
+                </tbody>
+            </table>
+ 
+ 
+            </div>
+          </div>
+ 
+        </div>
+      </div>
+    </section>
+ 
+  </main>
+ 
+ 
+ 
+  <script>
+    document.getElementById("projectbtn").addEventListener("click", function() {
+      var card = document.getElementById("projectCard");
+      var button = document.getElementById("projectbtn");
+     
+      // Toggle visibility
+      if (card.style.display === "none" || card.style.display === "") {
+        card.style.display = "block";
+        button.textContent = "Close Tab"; // Change button text to "Close Project"
+      } else {
+        card.style.display = "none";
+        button.textContent = "Upload Files"; // Change button text back to "Create Project"
+      }
+    });
+  </script>
+ 
+ 
+</body>
+ 
+ 
+{% endblock content %}

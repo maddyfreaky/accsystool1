@@ -113,57 +113,37 @@ class Task(models.Model):
     is_child = models.BooleanField(default=False)
     parent_task = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='child_tasks')
 
-    # Field for storing the date and time when status is updated
+    # Fields for storing the date and time when status is updated
     status_updated_at = models.DateTimeField(null=True, blank=True)
+    updated_as_working = models.DateTimeField(null=True, blank=True)
+    updated_as_completed = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(default=timezone.now)
 
-    # New field to track who assigned the task
+    # Field to track who assigned the task
     assigned_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='assigned_tasks')
 
     def save(self, *args, **kwargs):
-        # Check if the task already exists
-        is_new_task = not self.pk
-        original_task = None
-        
-        # If the task exists, get the original data to compare status changes
-        if not is_new_task:
+        # Handle auto-updating the `status_updated_at` timestamp
+        if self.pk:
             original_task = Task.objects.get(pk=self.pk)
 
-        # Call the parent save method to save the task
-        super(Task, self).save(*args, **kwargs)
-
-        # Handle notifications:
-        # If it's a new task, notify the assigned user
-        if is_new_task:
-           var=1
-            
-        else:
-            # If the status was changed, notify the user and the assigner
-            if original_task and original_task.status != self.status:
-                # Update status_updated_at
+            # Update `status_updated_at` if the status changes
+            if original_task.status != self.status:
                 self.status_updated_at = timezone.now()
-                self.save()
 
-                # Check if the assigned user is not in the Superadmin group
-                if not self.user.groups.filter(name='Superadmin').exists():
-                    # Notify the assigned user
-                    Notification.objects.create(
-                        user=self.user,
-                        message=f"Your task '{self.taskname}' status changed to {self.status}",
-                        assigned_by=self.assigned_by
-                    )
-                    
-                    # Notify the assigner if they are not the same as the assigned user
-                    if self.assigned_by and self.assigned_by != self.user:
-                        Notification.objects.create(
-                            user=self.assigned_by,
-                            message=f"The task '{self.taskname}' assigned to {self.user.username} was updated to {self.status}",
-                            assigned_by=self.user
-                        )
+            # Update `updated_as_working` if the status is set to "Working"
+            if self.status == 'Working' and original_task.status != 'Working':
+                self.updated_as_working = timezone.now()
+
+            # Update `updated_as_completed` if the status is set to "Completed"
+            if self.status == 'Completed' and original_task.status != 'Completed':
+                self.updated_as_completed = timezone.now()
+
+        super(Task, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.taskname} - {self.priority}"
-
     
 class TodolistFile(models.Model):
     todolist = models.ForeignKey(Todolist, on_delete=models.CASCADE, related_name='files')  # Related to Todolist
@@ -233,3 +213,16 @@ class ArchivedUser(models.Model):
 
     def _str_(self):
         return self.username
+    
+class LoginHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    login_time = models.DateTimeField(default=timezone.now)
+    logout_time = models.DateTimeField(null=True, blank=True)
+
+    def _str_(self):
+        return f"{self.user.username} - Login: {self.login_time}, Logout: {self.logout_time}"
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # mobile = models.BigIntegerField(unique=True,null=True)  # Use BigIntegerField for larger numbers
+    image = models.ImageField(upload_to='profile_images/', default='profile_images/default.jpg')  # Profile image field

@@ -13,8 +13,12 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Max
-from django.utils.timezone import localtime
+from django.utils.timezone import localtime, now
 from django.contrib.auth.models import Group
+from datetime import datetime, timedelta
+from django.db.models import Sum
+from django.utils.timezone import localtime
+import os
 
 
 
@@ -378,17 +382,39 @@ def update_task_status(request, task_id):
 
             # Fetch the task using the Task model
             task = Task.objects.get(id=task_id)
-            
-            # Update the task's status and save it to the database
-            task.status = new_status
-            task.save()
+
+            # Ensure the new status is different before updating
+            if task.status != new_status:
+                # Update the task's status and status_updated_at
+                task.status = new_status
+                task.status_updated_at = now()
+                task.save()
+
+                # Identify the current user (the one performing the action)
+                current_user = request.user
+
+                # Notify the assigned user, if not the current user
+                if task.user != current_user:
+                    Notification.objects.create(
+                        user=task.user,
+                        message=f"Your task '{task.taskname}' status was changed to {new_status} by '{current_user}'.",
+                        assigned_by=current_user
+                    )
+
+                # Notify the assigner, if not the current user and not the assigned user
+                if task.assigned_by and task.assigned_by != current_user and task.assigned_by != task.user:
+                    Notification.objects.create(
+                        user=task.assigned_by,
+                        message=f"The task '{task.taskname}' assigned to {task.user.username} was updated to {new_status}.",
+                        assigned_by=current_user
+                    )
 
             # Return a success response
             return JsonResponse({'success': True})
 
         except Task.DoesNotExist:
             return JsonResponse({'error': 'Task not found'}, status=404)
-        
+
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
@@ -437,9 +463,31 @@ def card_update_task_status(request, task_id):
     if request.method == 'POST':
         status = request.POST.get('status')
 
-        if status in dict(Task.STATUS_CHOICES).keys():
+        # Ensure the provided status is valid
+        if status in dict(Task.STATUS_CHOICES).keys() and task.status != status:
+            # Update task status and timestamp
             task.status = status
+            task.status_updated_at = now()
             task.save()
+
+            # Identify the current user (the one performing the action)
+            current_user = request.user
+
+            # Notify the assigned user, if not the current user
+            if task.user != current_user:
+                Notification.objects.create(
+                    user=task.user,
+                    message=f"Your task '{task.taskname}' status was changed to {status} by '{current_user}'.",
+                    assigned_by=current_user
+                )
+
+            # Notify the assigner, if not the current user and not the assigned user
+            if task.assigned_by and task.assigned_by != current_user and task.assigned_by != task.user:
+                Notification.objects.create(
+                    user=task.assigned_by,
+                    message=f"The task '{task.taskname}' assigned to {task.user.username} was updated to {status}.",
+                    assigned_by=current_user
+                )
 
     # Redirect to the same page (current page)
     return redirect(request.META.get('HTTP_REFERER', 'all_projects_with_tasks'))
@@ -602,7 +650,7 @@ def create_task(request, project_id, user_id):
                         settings.EMAIL_HOST_USER,  # The sender's email address
                         [user.email],  # List of recipient email addresses
                         fail_silently=False,
-                    )
+                    )   
                 except Exception as e:
                     # Handle email sending errors
                     print(f"Failed to send email to {user.email}: {e}")
@@ -748,11 +796,14 @@ def all_projects_with_tasks(request):
         projects = Project.objects.all().order_by('-created_at')
 
         user_tasks = []  # To store tasks assigned to the logged-in user
+        selected_status = request.POST.get('status') if request.method == 'POST' else None
 
         # Iterate over each project to get tasks specific to the logged-in user
         for project in projects:
             # Filter tasks for the logged-in user
             tasks = project.tasks.filter(user=request.user)
+            if selected_status:  # Apply status filter if provided
+                tasks = tasks.filter(status=selected_status)
 
             # Filter out child tasks if their parent is not completed
             filtered_tasks = []
@@ -780,6 +831,7 @@ def all_projects_with_tasks(request):
         # Pass the user's tasks and projects to the template
         context = {
             'user_tasks': user_tasks,  # This will hold projects with tasks specific to the user
+            'selected_status': selected_status, 
         }
         print("Rendering HTML with user-specific tasks")
         return render(request, 'all_projects_with_tasks.html', context)
@@ -810,10 +862,15 @@ def all_users_tasks(request):
             else:
                 # If the logged-in user is a Superadmin, show all tasks
                 tasks = Task.objects.filter(project__in=projects).order_by('-from_date')
+             # Apply status filter if selected
+            selected_status = request.POST.get('status', None)
+            if selected_status:
+                tasks = tasks.filter(status=selected_status)
             
             context = {
                 'projects': projects,
                 'tasks': tasks,  # Pass the filtered tasks to the template
+                'selected_status': selected_status,
             }
 
             return render(request, 'allusertasks.html', context)
@@ -946,3 +1003,245 @@ def delete_user(request, user_id):
         return JsonResponse({'success': 'User deleted successfully.'})
     else:
         return JsonResponse({'error': 'Permission Denied'}, status=403)
+
+@csrf_exempt
+def save_logout_time(request):
+    print("logout time")
+    if request.method == "POST" and request.user.is_authenticated:
+        try:
+            # Get the last login history record for the current user
+            last_login_record = LoginHistory.objects.filter(user=request.user).last()
+            if last_login_record and not last_login_record.logout_time:
+                # Update the logout time
+                kolkata_timezone = pytz.timezone('Asia/Kolkata')  # Set to IST
+                logout_time_utc = timezone.now()  # Current time in UTC
+                logout_time_local = logout_time_utc.astimezone(kolkata_timezone)  # Convert to IST
+                
+                last_login_record.logout_time = logout_time_utc  # Save in UTC
+                last_login_record.save()
+                
+                # Debug logs for UTC and local time
+                print(f"Logout time (UTC): {logout_time_utc}")
+                print(f"Logout time (Local): {logout_time_local}")
+                print("logout time saved")
+                
+                return JsonResponse({"success": True, "message": "Logout time saved successfully."})
+            return JsonResponse({"success": False, "message": "No active session found."})
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)})
+    return JsonResponse({"success": False, "message": "Invalid request."})
+
+@csrf_exempt
+def filter_login_history_by_date(request):
+    print("Function called")  # Debugging log
+    if request.method == "POST":
+        user_id = request.POST.get("user_id")
+        selected_date = request.POST.get("selected_date")
+
+        print(f"Received user_id: {user_id}, selected_date: {selected_date}")  # Debugging log
+
+        if user_id and selected_date:
+            # Get the selected date in Kolkata timezone
+            kolkata_timezone = pytz.timezone('Asia/Kolkata')
+            selected_date = timezone.datetime.strptime(selected_date, '%Y-%m-%d').date()
+
+            # Define the start and end of the selected date
+            start_of_day = timezone.datetime.combine(selected_date, timezone.datetime.min.time(), tzinfo=kolkata_timezone)
+            end_of_day = timezone.datetime.combine(selected_date, timezone.datetime.max.time(), tzinfo=kolkata_timezone)
+
+            # Filter login history by user_id and the selected date range (from start of the day to the end of the day)
+            login_history = LoginHistory.objects.filter(
+                user_id=user_id,
+                login_time__range=(start_of_day, end_of_day)  # Filter by selected date range
+            ).order_by('-login_time')
+
+            # Calculate total time spent today
+            total_time_spent = timedelta()
+
+            data = []
+            for entry in login_history:
+                login_time = entry.login_time.astimezone(kolkata_timezone)
+                logout_time = entry.logout_time.astimezone(kolkata_timezone) if entry.logout_time else None
+
+                # Calculate time spent for this session
+                if logout_time:
+                    time_spent = logout_time - login_time
+                else:
+                    time_spent = timezone.now() - login_time  # Time spent until now if still logged in
+
+                total_time_spent += time_spent
+
+                data.append({
+                    "login_time": login_time.strftime("%d-%m-%Y %H:%M:%S"),
+                    "logout_time": (logout_time.strftime("%d-%m-%Y %H:%M:%S") 
+                                    if logout_time else "Currently logged in"),
+                    "time_spent": str(time_spent).split(".")[0]  # Show in HH:MM:SS format
+                })
+
+            # Format total time spent in HH:MM:SS
+            total_hours, remainder = divmod(total_time_spent.seconds, 3600)
+            total_minutes, total_seconds = divmod(remainder, 60)
+            total_time_formatted = f"{total_hours:02}:{total_minutes:02}:{total_seconds:02}"
+
+            print(f"Login history data: {data}")  # Debugging log
+            return JsonResponse({"success": True, "data": data, "total_time": total_time_formatted})
+        
+        return JsonResponse({"success": False, "error": "User ID or Date not provided"})
+    
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+def loginusers(request):
+    # Fetch all users
+    users = User.objects.all()
+    return render(request, "loginusers.html", {"users": users})
+
+
+
+@csrf_exempt  # Remove this in production if CSRF tokens are properly included
+def get_user_login_history(request):
+    print("Function called")  # Debugging log
+    if request.method == "POST":
+        user_id = request.POST.get("user_id")
+        print(f"Received user_id: {user_id}")  # Debugging log
+        if user_id:
+            # Get today's date in Kolkata timezone
+            kolkata_timezone = pytz.timezone('Asia/Kolkata')
+            today = timezone.now().astimezone(kolkata_timezone).date()
+
+            # Define the start and end of today's date
+            start_of_day = timezone.datetime.combine(today, timezone.datetime.min.time(), tzinfo=kolkata_timezone)
+            end_of_day = timezone.datetime.combine(today, timezone.datetime.max.time(), tzinfo=kolkata_timezone)
+
+            # Filter login history by user_id and today's date range (from start of the day to the end of the day)
+            login_history = LoginHistory.objects.filter(
+                user_id=user_id,
+                login_time__range=(start_of_day, end_of_day)  # Filter by today's date range
+            ).order_by('-login_time')
+            print(f"Login history for today: {login_history}")  # Debugging log
+            
+            total_time = 0  # Initialize total time in seconds
+
+            # Prepare data with formatted login and logout times in Kolkata timezone
+            data = []
+            for entry in login_history:
+                login_time = entry.login_time.astimezone(kolkata_timezone)
+                logout_time = entry.logout_time.astimezone(kolkata_timezone) if entry.logout_time else None
+
+                # Calculate session duration in seconds
+                if logout_time:
+                    session_duration = (logout_time - login_time).total_seconds()
+                    total_time += session_duration
+                    logout_time_str = logout_time.strftime("%d-%m-%Y %H:%M:%S")
+                else:
+                    session_duration = 0
+                    logout_time_str = "Currently logged in"
+
+                # Add entry data
+                data.append({
+                    "login_time": login_time.strftime("%d-%m-%Y %H:%M:%S"),
+                    "logout_time": logout_time_str,
+                    "session_duration": session_duration / 3600  # Convert seconds to hours
+                })
+
+            # Convert total time (in seconds) to HH:MM:SS format
+            hours, remainder = divmod(total_time, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            total_time_formatted = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
+            
+            print(f"Total time spent today: {total_time_formatted}")  # Debugging log
+
+            # Return login data and formatted total time
+            return JsonResponse({
+                "success": True,
+                "data": data,
+                "total_time": total_time_formatted
+            })
+        
+        return JsonResponse({"success": False, "error": "User ID not provided"})
+    
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+@login_required
+def user_list(request):
+    if request.user.groups.filter(name__in=["Admin", "SuperAdmin"]).exists():
+        # Fetch all users excluding superusers (but include the logged-in Admin)
+        superadmin_group = Group.objects.get(name='Superadmin')
+        users = User.objects.exclude(groups=superadmin_group)
+
+        today = timezone.now().date()
+
+        
+        # Add the latest login and logout time to each user
+        for user in users:
+            latest_login = LoginHistory.objects.filter(user=user, login_time__isnull=False).order_by('-login_time').first()
+            latest_logout = LoginHistory.objects.filter(user=user, logout_time__isnull=False).order_by('-logout_time').first()
+
+            # Dynamically add latest login and logout to the user instance
+            user.latest_login = latest_login.login_time if latest_login else None
+            user.latest_logout = latest_logout.logout_time if latest_logout else None
+
+              # Calculate total logged-in hours for today
+            today_logins = LoginHistory.objects.filter(
+                user=user,
+                login_time__date=today
+            )
+
+            total_seconds = 0
+            for record in today_logins:
+                if record.logout_time:
+                    total_seconds += (record.logout_time - record.login_time).total_seconds()
+
+            user.total_hours_today = round(total_seconds / 3600, 2)  # Convert to hours and round
+        
+        # Render the user list page with the users and their login/logout times
+        return render(request, 'user_list.html', {'users': users})
+    else:
+        # Redirect non-superusers or show a permission denied message
+        return JsonResponse({'error': 'Permission Denied'}, status=403)
+    
+def userprofile(req):
+    # Retrieve or create the user profile
+    user_profile, created = UserProfile.objects.get_or_create(user=req.user)
+ 
+    if req.method == 'POST':
+        print("Image upload initiated")
+        # Handle the image upload or other POST actions here
+        return render(req, "user_profile.html", {"user_profile": user_profile})
+ 
+    # For GET requests, render the user profile page
+    return render(req, "user_profile.html", {"user_profile": user_profile})
+ 
+ 
+ 
+@login_required
+def upload_profile_image(request):
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+ 
+    if request.method == 'POST' and 'image' in request.FILES:
+        image = request.FILES['image']
+        extension = os.path.splitext(image.name)[1].lower()
+        allowed_extensions = ['.jpg', '.jpeg', '.png']
+ 
+        # Check if the file extension is allowed
+        if extension not in allowed_extensions:
+            return JsonResponse({
+                'status': 'error',
+                'message': "Only JPG, JPEG, and PNG files are allowed."
+            })
+ 
+        user_profile.image = image
+        user_profile.save()
+        # return JsonResponse({'status': 'success', 'message': 'Image uploaded successfully!'})
+ 
+    return redirect("userprofile")
+ 
+ 
+@login_required
+def delete_profile_image(request):
+    print("Delete request received")
+    if request.method == 'POST':
+        user_profile = UserProfile.objects.get(user=request.user)
+        user_profile.image.delete(save=False)
+        user_profile.image = None
+        user_profile.save()
+        return redirect('userprofile')

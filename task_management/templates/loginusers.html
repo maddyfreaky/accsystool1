@@ -1,0 +1,285 @@
+{% extends 'main.html' %}
+{% load static %}
+ 
+{% block content %}
+ 
+ 
+<body>
+ 
+ 
+ 
+ 
+ 
+  <main id="main" class="main">
+ 
+    <div class="pagetitle">
+      <h1>Users Login</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Home</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'user_list' %}">Users</a></li>
+          <li class="breadcrumb-item active">Users Login</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+ 
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+ 
+          <div class="card">
+            <div class="card-body">
+ 
+             
+ 
+                <form id="user-select-form" class="d-flex align-items-center">
+                    {% csrf_token %}
+                    <div class="form-group mt-3 w-25">
+                        <select id="user-select" name="user_id" class="form-control">
+                            <option value="" disabled selected>Select User</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+               
+                    <div class="form-group mt-3 w-25" style="margin-left: 5%;">
+                        <input type="date" id="filter-date" class="form-control">
+                    </div>
+               
+                     <!-- Align the buttons to the right -->
+    <div class="ml-auto mt-3" style="margin-left: 5%;">
+        <button type="button" class="btn btn-primary" id="download-csv">CSV</button>
+        <!-- <input type="button" class="btn btn-primary" value="PDF"> -->
+    </div>
+                </form>
+               
+ 
+ 
+               
+               
+                <div class="table-responsive">
+                    <table id="login-history-table" class="table mt-3">
+                        <thead>
+                            <tr class="text-nowrap">
+                                <th>S.No</th>
+                                <th>Login Time</th>
+                                <th>Logout Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="login-history-table-body">
+                            <!-- Login history will be dynamically injected here -->
+                        </tbody>
+                    </table>
+                </div>
+               
+<!-- Display total time spent today -->
+<div id="total-time" class="mt-3">
+    <!-- Total time will be dynamically injected here -->
+</div>
+ 
+ 
+ 
+            </div>
+          </div>
+ 
+        </div>
+      </div>
+    </section>
+ 
+  </main>
+ 
+ 
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const userSelect = document.getElementById("user-select");
+    const tableBody = document.getElementById("login-history-table-body");
+    const totalTimeElement = document.getElementById("total-time"); // Element to display total time
+ 
+    userSelect.addEventListener("change", function () {
+        const userId = this.value;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+ 
+     
+        // Clear the table and show a loading message
+        tableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+ 
+        // Send AJAX request
+        fetch("/get-user-login-history/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": csrfToken,
+            },
+            body: new URLSearchParams({ user_id: userId }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                tableBody.innerHTML = ""; // Clear the table body
+ 
+                if (data.success) {
+                    let serialNumber = 1;  // Initialize serial number
+ 
+                    // Populate table with login and logout times
+                    data.data.forEach((entry) => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${serialNumber}</td> <!-- Serial number -->
+                            <td>${entry.login_time}</td> <!-- Login time -->
+                            <td>${entry.logout_time}</td>`;
+                        tableBody.appendChild(row);
+ 
+                        serialNumber++;  // Increment serial number
+                    });
+ 
+                    // Show the total time in HH:MM:SS format
+                    totalTimeElement.innerText = `Total Time Spent Today: ${data.total_time}`;
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="4">No data found.</td></tr>`;
+                    totalTimeElement.innerText = "Total Time Spent Today: 00:00:00";
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                tableBody.innerHTML = `<tr><td colspan="4">Error fetching data.</td></tr>`;
+                totalTimeElement.innerText = "Total Time Spent Today: 00:00:00";
+            });
+    });
+});
+ 
+ 
+</script>
+ 
+<script>
+ 
+document.addEventListener("DOMContentLoaded", function () {
+    const userSelect = document.getElementById("user-select");
+    const dateInput = document.querySelector("input[type='date']");
+    const tableBody = document.getElementById("login-history-table-body");
+    const totalTimeDiv = document.getElementById("total-time");
+ 
+    userSelect.addEventListener("change", function () {
+        filterLoginHistory();
+    });
+ 
+    dateInput.addEventListener("change", function () {
+        filterLoginHistory();
+    });
+ 
+    function filterLoginHistory() {
+        const userId = userSelect.value;
+        const selectedDate = dateInput.value;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+ 
+       
+ 
+        // Clear the table and show a loading message
+        tableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+        totalTimeDiv.innerHTML = "";  // Clear the total time div
+ 
+        // Send AJAX request
+        fetch("/filter-login-history-by-date/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": csrfToken,
+            },
+            body: new URLSearchParams({ user_id: userId, selected_date: selectedDate }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                tableBody.innerHTML = ""; // Clear the table body
+ 
+                if (data.success) {
+                    let serialNumber = 1;  // Initialize serial number
+ 
+                    // Populate table with login history
+                    data.data.forEach((entry) => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${serialNumber}</td> <!-- Serial number -->
+                            <td>${entry.login_time}</td>
+                            <td>${entry.logout_time}</td>
+                        `;
+                        tableBody.appendChild(row);
+ 
+                        serialNumber++;  // Increment serial number
+                    });
+ 
+                    // Display total time spent
+                    totalTimeDiv.innerHTML = `
+                        <strong>Total Time Spent Today:</strong> ${data.total_time}
+                    `;
+ 
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="4">No data found.</td></tr>`;
+                    totalTimeDiv.innerHTML = "<strong>No data found for the selected date.</strong>";
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                tableBody.innerHTML = `<tr><td colspan="4">Error fetching data.</td></tr>`;
+                totalTimeDiv.innerHTML = "<strong>Error fetching data.</strong>";
+            });
+    }
+});
+ 
+ 
+</script>
+ 
+<script>
+    // Function to download table data as CSV
+    function downloadCSV() {
+        const table = document.getElementById('login-history-table');
+        const rows = Array.from(table.querySelectorAll('tr'));
+ 
+        // Get the selected user's username
+        const selectedUsername = getSelectedUsername();
+ 
+        let csvContent = `Username: ${selectedUsername}\n\n`; // Add username at the top of the file
+        csvContent += 'S.No,Login Time,Logout Time\n'; // Header row
+ 
+        // Loop through each row (skipping the header row)
+        rows.slice(1).forEach(row => {
+            const cols = Array.from(row.querySelectorAll('td'));
+            const rowData = cols.map(col => col.textContent.trim()).join(',');
+            csvContent += rowData + '\n';
+        });
+ 
+        // Add the total time to the CSV file
+        const totalTimeElement = document.getElementById("total-time"); // Element to display total time
+        const totalTimeText = totalTimeElement.innerText || ""; // Fetch total time text
+        csvContent += `\n${totalTimeText}`; // Append total time to the CSV content
+ 
+        // Create a Blob and trigger download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            // Use download attribute for HTML5 supported browsers
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${selectedUsername}_login_history.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+ 
+    // Function to get the selected username
+    function getSelectedUsername() {
+        const userSelect = document.getElementById("user-select"); // Get the dropdown element
+        const selectedOption = userSelect.options[userSelect.selectedIndex]; // Get the selected option
+        return selectedOption ? selectedOption.text : "Unknown User"; // Return the text of the selected option
+    }
+ 
+    // Event listener for the CSV button click
+    document.getElementById('download-csv').addEventListener('click', function () {
+        downloadCSV();
+    });
+</script>
+ 
+</body>
+ 
+ 
+{% endblock content %}

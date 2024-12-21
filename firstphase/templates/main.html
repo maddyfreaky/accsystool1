@@ -11,7 +11,7 @@
   <meta content="" name="keywords">
  
   <!-- Favicons -->
-  <link href="{% static 'NiceAdmin/NiceAdmin/assets/img/favicon.png' %}" rel="icon">
+  <link href="{% static 'NiceAdmin/NiceAdmin/assets/img/logos.jpg' %}" rel="icon">
   <link href="{% static 'NiceAdmin/NiceAdmin/asset/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
@@ -41,6 +41,7 @@
   
   
   <link rel="stylesheet" href="{% static 'NiceAdmin/NiceAdmin/assets/css/styles.css' %}" id="theme-style">
+  
   
   
   
@@ -116,7 +117,61 @@
   <!-- Optional: Add a theme if you want -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>  <!-- Include SweetAlert2 -->
 
+
+  <script>
+    // Set inactivity timeout in milliseconds (1 minute) 
+  //   const INACTIVITY_TIMEOUT = 2 * 60 * 60 * 1000;  // 2 hours
+    // const INACTIVITY_TIMEOUT = 10 * 1000;  // 10 seconds
+      const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+  
+  
+  
+  
+    let inactivityTimer;
+  
+    // Function to reset the inactivity timer
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(logoutUser, INACTIVITY_TIMEOUT);
+    }
+  
+    function logoutUser() {
+      // Set a flag to indicate the session timed out
+      localStorage.setItem('sessionTimeout', 'true');
+  
+      // Send logout information to the server
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      fetch('/save-logout-time/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': csrfToken,
+          },
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log("Logout time saved:", data);
+          // Redirect to the login page
+          window.location.href = "{% url 'login' %}";
+      })
+      .catch(error => {
+          console.error("Error saving logout time:", error);
+          // Still redirect even if saving fails
+          window.location.href = "{% url 'login' %}";
+      });
+  }
+  
+  
+    // Events that reset the timer (mouse move, key press, clicks)
+    document.addEventListener("mousemove", resetInactivityTimer);
+    document.addEventListener("keydown", resetInactivityTimer);
+    document.addEventListener("click", resetInactivityTimer);
+  
+    // Start the inactivity timer when the page loads
+    resetInactivityTimer();
+  </script>
 
 </body>
 

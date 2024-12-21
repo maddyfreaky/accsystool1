@@ -53,6 +53,13 @@ urlpatterns = [
     path('get-comments/<int:task_id>/', views.get_comments, name='get_comments'),
     path('mark-notifications-read/', views.mark_notifications_as_read, name='mark-notifications-read'),
     path('fetch-notifications/', views.fetch_notifications, name='fetch_notifications'),
-   
+    path('save-logout-time/', views.save_logout_time, name='save_logout_time'),
+    path('loginusers/', views.loginusers, name='loginusers'),
+    path('get-user-login-history/', views.get_user_login_history, name='get_user_login_history'),
+    path('filter-login-history-by-date/', views.filter_login_history_by_date, name='filter_login_history_by_date'),  # new view for date filtering
+    path('userprofile/', views.userprofile, name='userprofile'),
+    path('profile/upload-image/', views.upload_profile_image, name='upload_profile_image'),
+    path('profile/delete-image/', views.delete_profile_image, name='delete_profile_image'),
+
     
 ]

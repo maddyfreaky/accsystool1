@@ -21,18 +21,39 @@
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">All Tasks List</h5>
+              <form method="POST" class="mb-3">
+                {% csrf_token %}
+ 
+    <div class="d-flex align-items-center">
+      <select name="status" id="status" class="form-control-sm me-2">
+        <option selected disabled value="">Select Status</option>
+                        <option value="Not Started" {% if selected_status == 'Not Started' %}selected{% endif %}>Not Started</option>
+                        <option value="Working" {% if selected_status == 'Working' %}selected{% endif %}>Working</option>
+                        <option value="Pending Review" {% if selected_status == 'Pending Review' %}selected{% endif %}>Pending Review</option>
+                        <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Completed</option>
+                        <option value="Cancelled" {% if selected_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="Rework" {% if selected_status == 'Rework' %}selected{% endif %}>Rework</option>
+                    </select>
+                    <input type="submit" class="btn btn-primary me-2" value="Filter">
+                </div>
+            </form>
+            <button id="generatePdf" class="btn btn-success me-2">PDF</button>
+                                <button id="generateCsv" class="btn btn-success">CSV</button>
               <div class="table-responsive">
               <table class="table datatable" id="userTable">
                 <thead>
-                  <tr>
+                  <tr class="text-nowrap">
                     <th>Projectname</th>
-                    <th>Task name</th>
+                    <th class="text-nowrap">Task name</th>
                     <th>Priority</th>
                     <th class="text-nowrap">Assigned To</th> <!-- New column for the user working on the task -->
                     <th>Startdate</th>
                     <th>Enddate</th>
                     <th>Status</th>
-                    <th>Comment</th> <!-- Column for the Add Comment button -->
+                    <th>Comment</th>
+                    <th class="hide-in-table text-nowrap">Updated as Completed</th> <!-- Hidden in table -->
+                    <th class="hide-in-table">Updated as Working</th> <!-- Hidden in table -->
+  
                   </tr>
                 </thead>
                 <tbody>
@@ -70,6 +91,8 @@
                           Add Comment
                         </a>
                       </td>
+                      <td class="hide-in-table">{{ task.updated_as_completed }}</td> <!-- Hidden in table -->
+                      <td class="hide-in-table">{{ task.updated_as_working }}</td>
                     </tr>
                   {% empty %}
                     <tr>
@@ -186,6 +209,194 @@ function submitComment() {
     });
 }
 
+</script>
+<script>
+  document.getElementById('generatePdf').addEventListener('click', function () {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+ 
+      // Get table headers
+      const table = document.getElementById('userTable');
+      const headers = [];
+      let commentColumnIndex = -1; // Variable to identify the "Comment" column
+ 
+      table.querySelectorAll('thead th').forEach((header, index) => {
+          const headerText = header.innerText.trim();
+          if (headerText.toLowerCase() === 'comment') {
+              commentColumnIndex = index; // Mark the "Comment" column
+          } else {
+              headers.push(headerText); // Include all other headers
+          }
+      });
+ 
+      // Process table rows
+      const rows = [];
+      table.querySelectorAll('tbody tr').forEach(row => {
+          const rowData = [];
+          row.querySelectorAll('td').forEach((cell, index) => {
+              // Skip the "Comment" column
+              if (index === commentColumnIndex) {
+                  return;
+              }
+ 
+              // Check if the cell contains a select dropdown
+              const selectElement = cell.querySelector('select');
+              if (selectElement) {
+                  // Get the selected option's text
+                  const selectedOption = selectElement.options[selectElement.selectedIndex].text;
+                  rowData.push(selectedOption.trim());
+              } else {
+                  // For other cells, just take the text content
+                  rowData.push(cell.innerText.trim());
+              }
+          });
+          rows.push(rowData);
+      });
+ 
+      // Use AutoTable to generate the PDF
+      pdf.autoTable({
+          head: [headers], // Table headers (excluding "Comment")
+          body: rows,      // Table rows (excluding "Comment" column)
+          startY: 10,      // Starting Y position
+      });
+ 
+      // Save the PDF
+      pdf.save('table_data.pdf');
+  });
+</script>
+ 
+<script>
+  document.getElementById('generateCsv').addEventListener('click', function () {
+    const table = document.getElementById('userTable');
+    const headers = [];
+    const rows = [];
+    let descriptionColumnIndex = -1;
+ 
+    // Extract headers and identify the "Comment" column
+    table.querySelectorAll('thead th').forEach((header, index) => {
+        const headerText = header.innerText.trim();
+        if (headerText.toLowerCase() === 'comment') {
+            descriptionColumnIndex = index; // Mark the "Comment" column
+        } else {
+            headers.push(headerText); // Include all other headers
+        }
+    });
+ 
+    // Collect table data, excluding the "Comment" column
+    table.querySelectorAll('tbody tr').forEach(row => {
+        const rowData = [];
+        row.querySelectorAll('td').forEach((cell, index) => {
+            if (index === descriptionColumnIndex) return; // Skip the "Comment" column
+ 
+            // Check if the cell contains a select dropdown
+            const selectElement = cell.querySelector('select');
+            let cellData = "";
+            if (selectElement) {
+                // Get the selected option's text
+                cellData = selectElement.options[selectElement.selectedIndex].text.trim();
+            } else {
+                // For other cells, take the text content
+                cellData = cell.innerText.trim();
+            }
+ 
+            // Escape commas and wrap in double quotes if necessary
+            if (cellData.includes(',')) {
+                cellData = `"${cellData}"`;
+            }
+            rowData.push(cellData);
+        });
+        rows.push(rowData);
+    });
+ 
+    // Check row and header lengths
+    rows.forEach(row => {
+        while (row.length < headers.length) {
+            row.push(''); // Fill missing columns with empty strings
+        }
+    });
+ 
+    // Convert data to CSV format
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+ 
+    // Create a downloadable link
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'table_data.csv';
+ 
+    // Trigger the download
+    link.click();
+ 
+    // Cleanup
+    URL.revokeObjectURL(url);
+  });
+</script>
+<!-- jsPDF Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- jsPDF AutoTable Plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+  document.getElementById('generateCsv').addEventListener('click', function () {
+  const table = document.getElementById('userTable');
+  const headers = [];
+  const rows = [];
+ 
+  // Extract headers (table column names), excluding "Description"
+  table.querySelectorAll('thead th').forEach((header, index) => {
+      const headerText = header.innerText.trim();
+      if (headerText !== "Description") {
+          headers.push({ text: headerText, index: index });
+      }
+  });
+ 
+  // Collect table data, skipping the "Description" column
+  table.querySelectorAll('tbody tr').forEach(row => {
+      const rowData = [];
+      row.querySelectorAll('td').forEach((cell, cellIndex) => {
+          // Only include columns that are not "Description"
+          if (headers.some(header => header.index === cellIndex)) {
+              const selectElement = cell.querySelector('select');
+              let cellData = "";
+ 
+              // If the cell contains a select dropdown, get the selected option's text
+              if (selectElement) {
+                  cellData = selectElement.options[selectElement.selectedIndex].text.trim();
+              } else {
+                  // Otherwise, use the cell's text content
+                  cellData = cell.innerText.trim();
+              }
+ 
+              // Escape commas in data
+              if (cellData.includes(',')) {
+                  cellData = `"${cellData}"`;
+              }
+              rowData.push(cellData);
+          }
+      });
+      rows.push(rowData);
+  });
+ 
+  // Convert data to CSV format
+  const csvContent = [headers.map(h => h.text).join(','), ...rows.map(row => row.join(','))].join('\n');
+ 
+  // Create a downloadable link for the CSV file
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'table_data.csv';
+ 
+  // Trigger the download
+  link.click();
+ 
+  // Cleanup
+  URL.revokeObjectURL(url);
+});
+ 
+ 
 </script>
 
 </body>

@@ -12,9 +12,13 @@ from django.core.mail import send_mail
 from django.contrib.auth.hashers import make_password
 from django.urls import reverse
 
-
+@login_required
 def members(request):
-    return render(request,"all_leads.html")
+    if request.user.is_authenticated:
+        username = request.user.username
+        return render(request, 'all_leads.html', {'username': username})
+    else:
+        return redirect('login')
 
 
 def user_logout(request):

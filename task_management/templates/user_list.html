@@ -1,22 +1,17 @@
 {% extends 'main.html' %}
 {% load static %}
-
-{% block content %}
-
-
-<body>
-
  
-
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <!-- Include jQuery and Select2 JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
+{% block content %}
+ 
+ 
+<body>
+ 
+ 
+ 
+ 
+ 
   <main id="main" class="main">
-
+ 
     <div class="pagetitle">
       <h1>Users</h1>
       <nav>
@@ -27,48 +22,56 @@
         </ol>
       </nav>
     </div><!-- End Page Title -->
-
+ 
     <section class="section">
       <div class="row">
         <div class="col-lg-12">
-
+ 
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Users List</h5>
-              <button id="downloadCsvBtn" class="btn btn-primary mb-3">Download CSV</button>
+              <button id="downloadCsvBtn" class="btn btn-primary mt-2">CSV</button>
+              <button id="downloadCsvBtn" class="btn btn-primary mt-2" onclick="downloadPDF()">PDF</button>
+              <a href="{% url 'loginusers' %}" class="btn btn-primary mt-2">Login History</a>
  
-
+ 
+ 
+ 
              
              
-             
+<div class="table-responsive">            
 <table class="table datatable"  id="userTable">
   <thead>
-      <tr>
+      <tr class="text-nowrap">
         <th>S.No</th>
         <th>Username</th>
         <th>Email</th>
-        <!-- <th>Role</th> -->
-        <th>Created At</th>
+       
+        <th>Created</th>
+        <!-- <th>Last Login</th>
+        <th>Last Logout</th>
+        <th class="text-nowrap">Total Hours</th> New Column
+ 
+         -->
         <th>Action</th>
       </tr>
   </thead>
   <tbody>
     {% for user in users %}
-    <tr>
-        <td>{{ forloop.counter }}</td> <!-- Display serial number -->
+    <tr class="text-nowrap">
+        <td>{{ forloop.counter }}</td>
+       
         <td>
-          <a href="{% url 'user_project' user.id %}">{{ user.username }}</a> <!-- Clickable Username -->
+          <a href="{% url 'user_project' user.id %}">{{ user.username }}</a>
 </td>
         <td>
-          <a href="mailto:{{ user.email }}">{{ user.email }}</a> <!-- Clickable Email Link -->
+          <a href="mailto:{{ user.email }}">{{ user.email }}</a>
       </td>
-              <!-- <td>{% if user.is_superuser %}Admin{% else %}User{% endif %}</td>  -->
-        <td>{{ user.date_joined|date:"d-m-Y" }}</td> <!-- Creation date formatted as day-month-year time -->
+        <td>{{ user.date_joined|date:"d-m-Y" }}</td>
+ 
         <td>
             <div class="filter">
                 <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                    <!-- <li><a class="dropdown-item" href="#">Edit</a></li> -->
                     <li><a class="dropdown-item delete-link" href="{% url 'delete_user' user.id %}">Delete</a></li>
                 </ul>
             </div>
@@ -77,22 +80,23 @@
     {% endfor %}
 </tbody>
 </table>
-
-
-
-
-
+ </div>
+ 
+ 
+ 
+ 
+ 
             </div>
           </div>
-
+ 
         </div>
       </div>
     </section>
-
+ 
   </main>
-  
-
-
+ 
+ 
+ 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
       // This function checks for the JSON response when the page is loaded
@@ -115,16 +119,16 @@
                   }
               });
       }
-  
+ 
       // Call the function when the page is loaded
       document.addEventListener('DOMContentLoaded', checkPermission);
   </script>
-
-
-
-
+ 
+ 
+ 
+ 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+ 
 <script>
     // Function to handle user deletion
     function confirmDeleteUser(deleteUrl, userRow) {
@@ -158,10 +162,10 @@
                             position: 'top-end',
                             showConfirmButton: false
                         });
-
+ 
                         // Remove the deleted user row from the table without reloading the page
                         userRow.remove();
-
+ 
                     } else if (data.error) {
                         Swal.fire({
                             icon: 'error',
@@ -177,7 +181,7 @@
             }
         });
     }
-
+ 
     // Add event listener to delete buttons
     document.addEventListener('DOMContentLoaded', function () {
         const deleteLinks = document.querySelectorAll('.delete-link');
@@ -190,22 +194,22 @@
         });
     });
 </script>
-
-  
-
-
+ 
+ 
+ 
+ 
 <!-- JavaScript for downloading CSV file -->
 <script>
   document.getElementById("downloadCsvBtn").addEventListener("click", function () {
     var table = document.getElementById("userTable");
     var rows = table.querySelectorAll("tr");
     var csvContent = "";
-
+ 
     // Loop through rows to extract table data
     rows.forEach(function (row, rowIndex) {
       var cols = row.querySelectorAll("td, th");
       var csvRow = [];
-
+ 
       // Loop through columns, skipping the "Action" column (which is the last one)
       cols.forEach(function (col, colIndex) {
         // Assuming "Action" is always the last column, we skip it
@@ -213,10 +217,10 @@
           csvRow.push(col.innerText.trim()); // Add text content, skipping the last column
         }
       });
-
+ 
       csvContent += csvRow.join(",") + "\n"; // Join columns with commas and move to the next row
     });
-
+ 
     // Create a download link for the CSV
     var blob = new Blob([csvContent], { type: "text/csv" });
     var url = URL.createObjectURL(blob);
@@ -228,8 +232,82 @@
     document.body.removeChild(a);
   });
 </script>
-
+ 
+ 
+<script>
+ 
+// pdfDownload.js
+function downloadPDF() {
+    var table = document.getElementById("userTable");
+    if (!table) {
+        alert("Table not found");
+        return;
+    }
+ 
+    var { jsPDF } = window.jspdf;
+    var doc = new jsPDF();
+ 
+    var rows = [];
+    var headers = [];
+ 
+    // Get table headers
+    var headerRow = table.querySelectorAll("thead th");
+    headerRow.forEach(function(th, colIndex) {
+        if (colIndex !== headerRow.length - 1) { // Skip Action column
+            headers.push(th.innerText.trim());
+        }
+    });
+ 
+    // Get table rows
+    table.querySelectorAll("tbody tr").forEach(function(row, rowIndex) {
+        var rowData = [];
+        row.querySelectorAll("td").forEach(function(cell, colIndex) {
+            if (colIndex !== row.querySelectorAll("td").length - 1) { // Skip Action column
+                if (colIndex === 5) { // "Assigned To" column (index 5)
+                    var userNames = [];
+ 
+                    // Collect visible user names from icons
+                    var userIcons = cell.querySelectorAll('.user-icon');
+                    userIcons.forEach(function(icon) {
+                        userNames.push(icon.getAttribute('title')); // Extract from tooltips
+                    });
+ 
+                    // Collect users from the "Show More" modal
+                    var modal = document.querySelector('#showMoreModal' + rowIndex);
+                    if (modal) {
+                        modal.querySelectorAll('.list-group-item').forEach(function(item) {
+                            userNames.push(item.innerText.trim());
+                        });
+                    }
+ 
+                    // Add all user names to the row data
+                    rowData.push(userNames.join(", "));
+                } else {
+                    rowData.push(cell.innerText.trim());
+                }
+            }
+        });
+        rows.push(rowData);
+    });
+ 
+    // Add the table headers and rows to the PDF
+    doc.autoTable({
+        head: [headers],
+        body: rows
+    });
+ 
+    // Download the PDF
+    doc.save("projects.pdf");
+}
+ 
+</script>
 </body>
-
-
+ 
+ 
+  <!-- jsPDF Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+ 
+  <!-- jsPDF AutoTable Plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.20/jspdf.plugin.autotable.min.js"></script>
 {% endblock content %}
+ 
