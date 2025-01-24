@@ -42,3 +42,21 @@ class LeaveRequest(models.Model):
 
     def __str__(self):
         return f"{self.leave_type} from {self.from_date} to {self.to_date} for {self.user.username}"
+    
+
+class SentEmail(models.Model):
+    message_id = models.CharField(max_length=255, unique=True)  # Tracking ID
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
+    sender = models.ForeignKey(User, related_name='sent_emails', on_delete=models.CASCADE)
+    recipient_email = models.EmailField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+class ForwardedReply(models.Model):
+    sent_email = models.ForeignKey(SentEmail, related_name='forwarded_replies', on_delete=models.CASCADE)
+    reply_message_id = models.CharField(max_length=255, unique=True)  # Unique ID of the reply
+    forwarded_at = models.DateTimeField(auto_now_add=True)  # When it was forwarded
+
+class Attachment(models.Model):
+    email = models.ForeignKey(SentEmail, related_name='attachments', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='email_attachments/')

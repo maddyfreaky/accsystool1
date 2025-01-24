@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 from django.db.models import Sum
 from django.utils.timezone import localtime
 import os
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+
 
 
 
@@ -273,19 +276,15 @@ def user_list(request):
         return JsonResponse({'error': 'Permission Denied'}, status=403)
 
 
-def user_project(request, user_id):
+def user_project(request):
     print("user_project function")
 
-    # Get the user by ID or return 404 if not found
-    user = get_object_or_404(User, id=user_id)
-
-    # Filter out projects associated with users in the SuperAdmin group
+    # Get all projects excluding SuperAdmin-related projects
     user_projects = Project.objects.exclude(user__groups__name='SuperAdmin').order_by('-created_at')
     print("Filtered user_projects (excluding SuperAdmin projects):", user_projects)
 
     context = {
-        'user': user,  # Pass the selected user
-        'projects': user_projects,  # Pass the filtered projects for this user
+        'projects': user_projects,  # Pass all filtered projects
     }
 
     return render(request, 'user_project.html', context)
@@ -293,10 +292,8 @@ def user_project(request, user_id):
 
 
 
-
-def create_project(request, user_id):
-    print("create pgt function")
-    user = get_object_or_404(User, id=user_id)
+def create_project(request):
+    print("create_project function")
 
     if request.method == 'POST':
         # Get form data from POST request
@@ -305,35 +302,33 @@ def create_project(request, user_id):
         priority = request.POST.get('priority')
         from_date = request.POST.get('fromdate')
         to_date = request.POST.get('todate')
+        # default_user = get_object_or_404(User, username='Punithan')
+
         if Project.objects.filter(projectname=projectname).exists():
             return JsonResponse({'status': 'error', 'message': 'Project name already exists, please give a different name'})
 
         try:
             print("try block")
-            # Create and save new Project instance, linking it to the user
+            # Create and save new Project instance
             project = Project(
                 projectname=projectname,
-                # taskname=taskname,
                 priority=priority,
                 from_date=from_date,
                 to_date=to_date,
-                user=user,  # Associate the project with the selected user
-                assigned_by=request.user  # Set the user creating the project
-
+                assigned_by=request.user,  # Set the user creating the project
+                user=None, 
             )
             project.save()
-            print(" project data saved")
+            print("Project data saved")
 
             # Redirect back to the user's project page
-            return redirect('user_project', user_id=user.id)
+            return redirect('user_project')
 
         except Exception as e:
             print("except")
             return HttpResponse(f"An error occurred: {e}", status=500)
 
-    # If GET request, just render the page with the user's existing projects
-    projects = Project.objects.filter(user=user)
-    return render(request, 'userproject.html', {'projects': projects, 'user': user})
+    return render(request, 'create_project.html')
 
 @require_POST
 def update_status(request, project_id):
@@ -551,24 +546,23 @@ def specific_user_task_view_task_mgt(request, project_id, user_id):
         # If it's a GET request, render the form page
         return render(request, 'specific_user_task_form.html')
 
-def task_detail(request, project_id, user_id):
+def task_detail(request, project_id):
     project = Project.objects.get(id=project_id)
-    selected_user = User.objects.get(id=user_id)
-    tasks = Task.objects.filter(project=project, user=selected_user)  # Fetch tasks for the specific user
+    tasks = Task.objects.filter(project=project)  # Fetch all tasks for the project
 
     # Fetch all tasks related to this project for parent task dropdown
     all_tasks = Task.objects.filter(project=project)
     superadmin_group = Group.objects.get(name='Superadmin')
-    excluded_users = User.objects.filter(groups=superadmin_group) | User.objects.filter(id=user_id)
+    excluded_users = User.objects.filter(groups=superadmin_group)
     available_users = User.objects.exclude(id__in=excluded_users.values_list('id', flat=True))
 
     return render(request, 'task_detail.html', {
         'tasks': tasks,
         'selected_project': project,
-        'user': selected_user,
         'all_tasks': all_tasks,  # Passing all tasks for parent task selection
         'available_users': available_users
     })
+
 
 
 from django.contrib.auth.models import User
@@ -576,11 +570,14 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
 
-def create_task(request, project_id, user_id):
+from django.core.exceptions import ValidationError
+from django.contrib import messages
+
+def create_task(request, project_id):
     if request.method == 'POST':
         project = get_object_or_404(Project, id=project_id)
-        assigning_user = get_object_or_404(User, id=user_id)  # User creating the task
 
+        # Get task details from the POST request
         taskname = request.POST.get('taskname')
         priority = request.POST.get('priority')
         from_date = request.POST.get('fromdate')
@@ -589,15 +586,18 @@ def create_task(request, project_id, user_id):
         is_child = request.POST.get('is_child') == 'on'
         parent_task_id = request.POST.get('parent_task')
 
-        # Get selected users
+        if is_child and not parent_task_id:
+            messages.error(request, "Please select a parent task when 'Is Child' is checked.")
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        # Get selected users from the POST request
         selected_user_ids = request.POST.getlist('selected_users')
         selected_users = User.objects.filter(id__in=selected_user_ids)
 
-        # Add the user specified in the URL
-        selected_users = list(selected_users)  # Convert to list
-        main_user = get_object_or_404(User, id=user_id)
-        if main_user not in selected_users:
-            selected_users.append(main_user)  # Ensure the main user is included
+        if not selected_users:
+            # Handle case where no users are selected
+            messages.error(request, "Please select at least one user to assign the task.")
+            return redirect('create_task', project_id=project_id)
 
         # Create tasks for each selected user
         for user in selected_users:
@@ -641,7 +641,7 @@ def create_task(request, project_id, user_id):
                     f"Please log in to the system to view more details.\n\n"
                     f"Best regards,\n"
                     f"{request.user.username}\n\n"
-                    f"This is a system generated email, please do not reply"
+                    f"This is a system-generated email, please do not reply."
                 )
                 try:
                     send_mail(
@@ -650,12 +650,13 @@ def create_task(request, project_id, user_id):
                         settings.EMAIL_HOST_USER,  # The sender's email address
                         [user.email],  # List of recipient email addresses
                         fail_silently=False,
-                    )   
+                    )
                 except Exception as e:
                     # Handle email sending errors
                     print(f"Failed to send email to {user.email}: {e}")
 
-        return redirect('task_detail', project_id=project.id, user_id=user_id)
+        # Redirect to the task details page
+        return redirect('task_detail', project_id=project.id)
 
     
 def mark_notifications_as_read(request):
@@ -747,25 +748,11 @@ from django.contrib.auth.models import Group
 from .models import Project
 
 def all_projectss(request):
-    # Get the Normaluser group
-    normal_user_group = Group.objects.get(name='Normalusers')
+    # Get the Superadmin group
+    superadmin_group = Group.objects.get(name='Superadmin')
 
-    # Check if the logged-in user is in the Admin group
-    if request.user.groups.filter(name='Admin').exists():
-        # Get both Admin and Superadmin groups
-        admin_group = Group.objects.get(name='Admin')
-        superadmin_group = Group.objects.get(name='Superadmin')
-
-        # Show projects where assigned_by is either Admin or Superadmin, and the project is assigned to Normalusers
-        projects = Project.objects.filter(
-            user__groups=normal_user_group
-        ).filter(
-            assigned_by__groups__in=[admin_group, superadmin_group]
-        ).order_by('-created_at')
-    
-    else:
-        # For other users (Superadmin and others), exclude their own projects
-        projects = Project.objects.exclude(user=request.user).order_by('-created_at')
+    # Exclude projects where the user belongs to the Superadmin group
+    projects = Project.objects.exclude(user__groups=superadmin_group).order_by('-created_at')
 
     context = {
         'projects': projects
@@ -1245,3 +1232,355 @@ def delete_profile_image(request):
         user_profile.image = None
         user_profile.save()
         return redirect('userprofile')
+    
+def generate_meeting_topic():
+    # Get the last event in the database
+    last_event = Event.objects.order_by('id').last()
+
+    # If no event exists, start with "Meeting-0001"
+    if not last_event:
+        return "Meeting-0001"
+
+    # Extract the topic from the last event
+    last_topic = last_event.topic
+
+    # Ensure the topic follows the expected format
+    try:
+        # Split the topic and extract the number part
+        number = int(last_topic.split('-')[1]) + 1
+    except (IndexError, ValueError):
+        # Handle cases where the format is unexpected
+        return "Meeting-0001"
+
+    # Return the new topic with zero-padded number
+    return f"Meeting-{number:04d}"
+
+
+def meeting(request):
+    topic = generate_meeting_topic()
+    print("Generated Topic:", topic)  # Debugging line
+    users = User.objects.all()  # Fetch all users
+
+    # Ensure the topic is passed correctly to the template
+    return render(request, 'meeting.html', {'topic': topic, 'users': users})
+
+def meetingsave(request):
+    if request.method == "POST":
+        topic = request.POST.get('topic')
+        organiser = request.POST.get('organiser')
+        partner = request.POST.get('partner')
+        partner_logo = request.POST.get('partner_logo')
+        event_type = request.POST.get('type')
+        participants = request.POST.getlist('participants')  # Get list of selected users
+        location = request.POST.get('location')
+        event_date = request.POST.get('date')  # Use this as both from_date and to_date
+        starttime = request.POST.get('starttime')
+        endtime = request.POST.get('endtime')
+        link = request.POST.get('link')
+        agenda = request.POST.getlist('agenda[]')
+        priority = request.POST.get('priority')
+
+
+        # Create a Project for the meeting
+        default_user = get_object_or_404(User, username='Punithan')
+        project = Project(
+            projectname=topic,
+            priority=priority,
+            from_date=event_date,  # Use Event Date for from_date
+            to_date=event_date,    # Use Event Date for to_date
+            assigned_by=request.user,
+            user=None,
+        )
+        project.save()
+
+         # Create the Event instance
+        event = Event(
+            topic=topic,
+            organiser=organiser,
+            partner=partner,
+            partner_logo=partner_logo,
+            event_type=event_type,
+            participants=",".join(participants),  # Store as comma-separated string
+            location=location,
+            date=event_date,
+            starttime=starttime,
+            endtime=endtime,
+            link=link,
+            agenda=agenda,
+            project=project,
+            prepared_by=request.user,
+        )
+        event.save()
+
+        return redirect('meeting_list')
+
+    return render(request, 'meeting.html')
+
+def calculate_time_duration(start_time, end_time):
+    """
+    Calculate the duration between two times, accounting for cross-midnight scenarios.
+    """
+    start_datetime = datetime.combine(datetime.min, start_time)
+    end_datetime = datetime.combine(datetime.min, end_time)
+    if end_datetime < start_datetime:
+        end_datetime += timedelta(days=1)
+    return end_datetime - start_datetime
+
+def meeting_list(request):
+    meetings = Event.objects.all()
+    return render(request, 'meeting_list.html', {'meetings': meetings})
+
+#sends the meeting invitation using sending.html
+def meetingsend(request, id):
+    try:
+        # Retrieve the event using the given id
+        event = Event.objects.get(id=id)
+    except Event.DoesNotExist:
+        return render(request, 'meeting.html', {"error": "Event not found"})
+
+    try:
+        # Extract participant IDs and filter users accordingly
+        participant_ids = [int(pid) for pid in event.participants.split(",")]
+    except ValueError:
+        return render(request, 'meeting.html', {"error": "Invalid participant IDs format"})
+
+    users = User.objects.filter(id__in=participant_ids)
+
+    # Create a list of email addresses for the participants
+    to_email = [user.email for user in users]
+
+    # Prepare context for the email body
+    context = {
+        'topic': event.topic,
+        'organiser': event.organiser,
+        'partner': event.partner,
+        'partner_logo': event.partner_logo,
+        'type': event.event_type,
+        'location': event.location,
+        'date': event.date,
+        'starttime': event.starttime,
+        'endtime': event.endtime,
+        'duration': event.duration,
+        'link': event.link,
+        'agenda': event.agenda,
+    }
+
+    # Render the HTML content for the email
+    html_content = render_to_string('sending.html', context)
+
+    # Email details
+    subject = f"Meeting Invitation: {event.topic}"
+    from_email = "taskaccsys@gmail.com"
+    
+    # Sending the email to the participants
+    email = EmailMultiAlternatives(subject, "", from_email, to_email)
+    email.attach_alternative(html_content, "text/html")
+    
+    try:
+        # Send the email to all participants
+        email.send()
+    except Exception as e:
+        # Handle error if sending fails
+        return render(request, 'meeting.html', {"error": f"Error sending email: {str(e)}"})
+
+    # Redirect to the meeting list page after sending the email
+    return redirect('meeting_list')
+
+def after_meeting(request, id):
+    meeting = Event.objects.get(id=id)
+    return render(request, 'add_remark.html', {'meeting': meeting})
+
+def delete_meeting(request, id):
+
+    meeting = get_object_or_404(Event, id=id)
+    meeting.delete()
+    messages.success(request, 'Meeting deleted successfully!')
+    return redirect('meeting_list')
+
+def points_discussed(request, id):
+    if request.method == 'POST':
+        meeting = get_object_or_404(Event, id=id)
+
+        meeting.actual_starttime  = request.POST.get('actual_starttime')
+        meeting.actual_endtime = request.POST.get('actual_endtime')
+        remarks = request.POST.getlist('remark[]')
+        try:
+            formatted_actual_start_time = datetime.strptime(meeting.actual_starttime, "%H:%M").time()
+            formatted_actual_end_time = datetime.strptime(meeting.actual_endtime, "%H:%M").time()
+        except ValueError:
+            return render(request, 'meeting.html', {"error": "Invalid time format. Use HH:MM."}) 
+        
+        meeting.actual_duration = calculate_time_duration(formatted_actual_start_time, formatted_actual_end_time)
+
+        filtered_remarks = [remark.strip() for remark in remarks if remark.strip()] 
+        meeting.remark = filtered_remarks  
+        meeting.save()
+
+        return redirect('meeting_list')
+
+def points_agreed(request, id):
+    meeting = get_object_or_404(Event, id=id)
+
+    if request.method == 'POST':
+        # Retrieve form data
+        remark = request.POST.get('remark')
+        selected_user_ids = request.POST.getlist('selected_users')
+        priority = request.POST.get('priority', 'Low')
+        assigned_date = request.POST.get('assigned_date')
+        final_date = request.POST.get('final_date')
+        description = request.POST.get('description', '')
+
+        # Convert dates
+        try:
+            assigned_date = datetime.strptime(assigned_date, "%Y-%m-%d").date()
+            final_date = datetime.strptime(final_date, "%Y-%m-%d").date()
+        except ValueError:
+            return HttpResponse("Invalid date format. Please use YYYY-MM-DD.", status=400)
+
+        # Get selected users
+        selected_users = User.objects.filter(id__in=selected_user_ids)
+
+        if not selected_users:
+            messages.error(request, "Please select at least one user to assign the task.")
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        # Fetch the linked project
+        project = meeting.project
+        if not project:
+            messages.error(request, "No project linked to this meeting.")
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+
+        # Create tasks and send notifications
+        for user in selected_users:
+            # Create the task
+            task = Task.objects.create(
+                taskname=remark,
+                priority=priority,
+                from_date=assigned_date,
+                to_date=final_date,
+                description=description,
+                user=user,
+                project=project,
+                assigned_by=request.user
+            )
+
+            # Notify user in-app
+            Notification.objects.create(
+                user=user,
+                message=f"Task '{remark}' created by {request.user.username}",
+                assigned_by=request.user
+            )
+
+            # Send email notification
+            if user.email:
+                subject = f"New Task Assigned: {remark}"
+                message = (
+                    f"Dear {user.username},\n\n"
+                    f"You have been assigned a new task in the project '{project.projectname}'.\n\n"
+                    f"Task Name: {remark}\n"
+                    f"Priority: {priority}\n"
+                    f"Assigned Date: {assigned_date}\n"
+                    f"Final Date: {final_date}\n"
+                    f"Description: {description}\n\n"
+                    f"Best regards,\n"
+                    f"{request.user.username}"
+                )
+                try:
+                    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
+                except Exception as e:
+                    # Log or handle email-sending error
+                    messages.error(request, f"Failed to send email to {user.username}: {str(e)}")
+
+        # Redirect back to the referring page
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    # GET request: Render the form
+    assigned_remarks = [task.taskname for task in meeting.project.tasks.all()] if meeting.project else []
+     # Parse participants into a list of user IDs
+    participants_ids = list(map(int, meeting.participants.split(','))) if meeting.participants else []
+
+    # Fetch users from the participants
+    participants = User.objects.filter(id__in=participants_ids).exclude(groups__name="Superadmin")
+
+    return render(request, 'assign_tasks.html', {
+        'meeting': meeting,
+        'remarks': meeting.remark,
+        'assigned_remarks': assigned_remarks,
+        'users': participants  
+    })
+
+def minutes_of_meeting(request, id):
+    # Fetch the Event object
+    meeting = get_object_or_404(Event, id=id)
+    
+    # Fetch tasks related to the project's tasks
+    tasks = Task.objects.filter(project=meeting.project)  # Use the project to filter tasks
+    
+    # Convert participant IDs into user names
+    participant_ids = meeting.participants.split(",")  # Split IDs stored as "1,2,12"
+    participants = User.objects.filter(id__in=participant_ids)  # Fetch user objects
+    
+    # Pass the data to the template
+    return render(request, 'minutes_of_meeting.html', {
+        'meeting': meeting,
+        'tasks': tasks,
+        'participants': participants,
+    })
+
+def send_mom(request, id):
+    # Fetch the Event object
+    meeting = get_object_or_404(Event, id=id)
+    
+    # Fetch associated tasks from the Task table
+    tasks = Task.objects.filter(project=meeting.project)  # Use project to filter tasks
+
+    # Get participants' email addresses
+    participant_ids = meeting.participants.split(",")  # Split participant IDs into a list
+    participants = User.objects.filter(id__in=participant_ids)  # Fetch user objects
+    print("participants",participants)
+    to_email = [user.email for user in participants if user.email]  # Get their email addresses
+
+    if not to_email:
+        return HttpResponse("No participants with valid email addresses found.")
+
+    # Prepare email context
+    context = {
+        'meeting': {
+            'topic': meeting.topic,
+            'organiser': meeting.organiser,
+            'partner': meeting.partner,
+            'event_type': meeting.event_type,
+            'participants': participants,
+            'location': meeting.location,
+            'date': meeting.date,
+            'starttime': meeting.starttime,
+            'endtime': meeting.endtime,
+            'actual_starttime': meeting.actual_starttime,
+            'actual_endtime': meeting.actual_endtime,
+            'duration': meeting.duration,
+            'actual_duration': meeting.actual_duration,
+            'agenda': meeting.agenda,
+            'remark': meeting.remark,
+            'link': meeting.link,
+        },
+        'tasks': tasks,
+    }
+
+    # Render the HTML content
+    html_content = render_to_string('sending_mom.html', context)
+
+    # Prepare email
+    subject = f"Minutes of the Meeting - {meeting.topic}"
+    from_email = "taskaccsys@gmail.com"  # Replace with your email
+    email = EmailMultiAlternatives(subject, "", from_email, to_email)
+    email.attach_alternative(html_content, "text/html")
+
+    # Send the email
+    try:
+        email.send()
+        return redirect('meeting_list')
+    except Exception as e:
+        return HttpResponse(f"Failed to send email: {str(e)}")
+
+
+

@@ -32,7 +32,7 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)  # New field to store last update tim
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE,related_name='assigned_projects')  # Link to the User model
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True,related_name='assigned_projects')  # Link to the User model
     # The user who assigned the project (admin/superuser)
     assigned_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_projects')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
@@ -226,3 +226,28 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     # mobile = models.BigIntegerField(unique=True,null=True)  # Use BigIntegerField for larger numbers
     image = models.ImageField(upload_to='profile_images/', default='profile_images/default.jpg')  # Profile image field
+
+class Event(models.Model):
+    topic = models.CharField(max_length=200)  # Topic of the event
+    organiser = models.CharField(max_length=200)
+    partner=models.CharField(max_length=200,default='none')
+    partner_logo=models.URLField(blank=True, null=True) # Organiser's name
+    project = models.OneToOneField(Project, null=True, blank=True, on_delete=models.SET_NULL, related_name='meeting')
+    event_type = models.CharField(max_length=100)  # Type of the event
+    participants = models.CharField(max_length=500) # Participants' details
+    location = models.CharField(max_length=300)  # Location of the event
+    date = models.DateField(null=True)  # Event date
+    starttime = models.TimeField(null=True)
+    endtime = models.TimeField(null=True)
+    actual_starttime = models.TimeField(null=True)
+    actual_endtime = models.TimeField(null=True)
+    duration = models.DurationField(null=True)
+    actual_duration = models.DurationField(null=True)  # Duration of the event
+    agenda = models.JSONField(default=list)
+    remark = models.JSONField(default=list)
+    link = models.URLField(blank=True, null=True)
+    prepared_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='prepared_by')
+
+    def __str__(self):
+        return f"{self.topic} organized by {self.organiser}"
+ 

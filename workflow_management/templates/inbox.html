@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox</title>
+    <style>
+        /* General Reset */
+        body, h1, h2, p, table, th, td, input, textarea, button {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #4e54c8, #8f94fb);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 1500px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px 30px;
+        }
+        h2 {
+            text-align: center;
+            color: #4e54c8;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table thead th {
+            background: #4e54c8;
+            color: #fff;
+            text-align: left;
+            padding: 10px;
+            font-size: 14px;
+        }
+        table tbody td {
+            padding: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        table tbody tr:hover {
+            background: #f1f1f1;
+        }
+        .attachment-link {
+            color: #4e54c8;
+            text-decoration: none;
+        }
+        .attachment-link:hover {
+            text-decoration: underline;
+        }
+        .no-emails {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+        }
+        /* Reply Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .modal-content h3 {
+            margin-bottom: 15px;
+            color: #4e54c8;
+        }
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .modal-content button {
+            padding: 10px 20px;
+            background: #4e54c8;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal-content button:hover {
+            background: #3e43a8;
+        }
+        .close-modal {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #aaa;
+            cursor: pointer;
+        }
+        .close-modal:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Inbox</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Subject</th>
+                    <th>Body</th>
+                    <th>Attachments</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for email in inbox_emails %}
+                <tr>
+                    <td>{{ email.from }}</td>
+                    <td>{{ email.to }}</td>
+                    <td>{{ email.subject }}</td>
+                    <td>{{ email.body }}</td>
+                    <td>
+                        {% if email.attachments %}
+                            {% for attachment in email.attachments %}
+                            <a href="{{ attachment.file_url }}" class="attachment-link" target="_blank" download>
+                                {{ attachment.file_name }}
+                            </a><br>
+                            {% endfor %}
+                        {% else %}
+                            No Attachments
+                        {% endif %}
+                    </td>
+                    <td>{{ email.date }}</td>
+                    <td>
+                        <button class="reply-btn" 
+                                data-to="{{ email.from }}" 
+                                data-subject="Re: {{ email.subject }}" 
+                                data-body="Original Message:{{ email.body }}">Reply</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-emails">No emails received yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Reply Modal -->
+    <div class="modal" id="replyModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <h3>Reply to Email</h3>
+            <form method="POST" action="{% url 'send_reply' %}">
+                {% csrf_token %}
+                <input type="email" id="toField" name="to_email" placeholder="To" readonly>
+                <input type="text" id="subjectField" name="subject" placeholder="Subject" readonly>
+                <textarea id="bodyField" name="body" rows="5" placeholder="Write your reply..."></textarea>
+                <button type="submit">Send Reply</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const replyButtons = document.querySelectorAll('.reply-btn');
+        const modal = document.getElementById('replyModal');
+        const closeModal = document.getElementById('closeModal');
+        const toField = document.getElementById('toField');
+        const subjectField = document.getElementById('subjectField');
+        const bodyField = document.getElementById('bodyField');
+
+        replyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                toField.value = button.getAttribute('data-to');
+                subjectField.value = button.getAttribute('data-subject');
+                bodyField.value = button.getAttribute('data-body');
+                modal.classList.add('active');
+            });
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    </script>
+</body>
+</html>

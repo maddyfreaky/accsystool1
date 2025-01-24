@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Minutes of the Meeting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .header-table img {
+            width: 110px;
+            height: auto;
+        }
+        .header-table h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .content-section {
+            margin-top: 20px;
+        }
+        .content-section p {
+            margin: 5px 0;
+        }
+        .content-section table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .content-section table th,
+        .content-section table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .content-section table th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <img src="http://www.accsysconsult.com/wp-content/uploads/2023/05/Accsys-Consulting.png" alt="Company Logo" height="50" width="100">
+
+        <h1 style="text-align: center;">Minutes Of Meeting</h1>
+
+        <div class="content-section">
+            <table class="table table-bordered table-secondary">
+                <tbody>
+                    <tr>
+                        <td><strong>Topic:</strong></td>
+                        <td>{{ meeting.topic }}</td>
+                        <td><strong>Organizer:</strong></td>
+                        <td>{{ meeting.organiser }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date:</strong></td>
+                        <td>{{ meeting.date }}</td>
+                        <td><strong>Location:</strong></td>
+                        <td>{{ meeting.location }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Start Time:</strong></td>
+                        <td>{{ meeting.actual_starttime|default_if_none:meeting.starttime }}</td>
+                        <td><strong>End Time:</strong></td>
+                        <td>{{ meeting.actual_endtime|default_if_none:meeting.endtime }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Duration:</strong></td>
+                        <td>{{ meeting.actual_duration|default_if_none:meeting.duration }}</td>
+                        <td><strong>Type:</strong></td>
+                        <td>{{ meeting.event_type }}</td>
+                    </tr>
+                    {% if meeting.partner != "none" %}
+                    <tr>
+                        <td><strong>partner:</strong></td>
+                        <td>{{ meeting.partner }}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+<!-- Participants Section -->
+<div class="content-section">
+    <h3>Participants</h3>
+    <table class="table table-bordered table-secondary">
+        <tbody>
+            <tr>
+                <td><strong>Participants:</strong></td>
+                <td colspan="3">
+                    {% for participant in meeting.participants %}
+                        {{ participant.username }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
+        <!-- Agenda -->
+        <div class="content-section">
+            <h3>Agenda</h3>
+            <table>
+                <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                </tr>
+                {% for agenda_item in meeting.agenda %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ agenda_item }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <!-- Tasks (Points Agreed) -->
+        {% if tasks %}
+<!-- Points Agreed -->
+<div class="mb-3">
+    <h5>Points Agreed</h5>
+    <table class="table table-bordered table-secondary">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Remark</th>
+                <th>Assigned To</th>
+                <th>Priority</th>
+                <th>Assigned Date</th>
+                <th>Final Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ task.taskname }}</td>
+                <td>{{ task.user.username }}</td>
+                <td>{{ task.priority }}</td>
+                <td>{{ task.from_date }}</td>
+                <td>{{ task.to_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+        <!-- Footer -->
+        <!-- <div class="footer">
+            <p><strong>Prepared By:</strong> Sarvesh</p>
+            <p><strong>Email Address:</strong> sarveshs160405@gmail.com</p>
+        </div> -->
+    </div>
+</body>
+</html>

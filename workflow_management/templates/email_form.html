@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Email</title>
+    <style>
+        /* General Reset */
+        body, h1, h2, p, table, th, td, input, textarea, button {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(120deg, #4e54c8, #8f94fb);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            padding: 20px 30px;
+        }
+        h2 {
+            text-align: center;
+            color: #4e54c8;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        /* Form Styling */
+        form {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            resize: vertical;
+        }
+        .form-group input[type="file"] {
+            padding: 5px;
+        }
+        .form-group button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background: #4e54c8;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .form-group button:hover {
+            background: #3c3fa7;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #f9f9f9;
+        }
+        table thead th {
+            background: #4e54c8;
+            color: #fff;
+            text-align: left;
+            padding: 10px;
+            font-size: 14px;
+        }
+        table tbody td {
+            padding: 10px;
+            font-size: 14px;
+            border-bottom: 1px solid #ddd;
+        }
+        table tbody tr:nth-child(even) {
+            background: #f1f1f1;
+        }
+        .attachment-link {
+            color: #4e54c8;
+            text-decoration: none;
+        }
+        .attachment-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Messages Styling */
+        .messages {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            table thead th,
+            table tbody td {
+                font-size: 12px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Send Email</h2>
+        {% if messages %}
+        <div>
+            {% for message in messages %}
+            <div class="messages {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="POST" action="{% url 'send_email' %}" enctype="multipart/form-data" onsubmit="return validateAttachments()">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="to_email">To:</label>
+                <input type="email" id="to_email" name="to_email" placeholder="Recipient's email address" required>
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <input type="text" id="subject" name="subject" placeholder="Email subject" required>
+            </div>
+            <div class="form-group">
+                <label for="body">Message:</label>
+                <textarea id="body" name="body" rows="5" placeholder="Write your message here" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="attachments">Attachments (Max 5 MB each):</label>
+                <input type="file" id="attachments" name="attachments" multiple onchange="updateFileList()">
+                <div id="file-list" style="margin-top: 10px;"></div>
+                <div id="file-error" style="color: red; margin-top: 5px;"></div>
+            </div>            
+            <div class="form-group">
+                <button type="submit">Send Email</button>
+            </div>
+        </form>
+        
+        <script>
+            const fileInput = document.getElementById('attachments');
+            const fileList = document.getElementById('file-list');
+            const errorDiv = document.getElementById('file-error');
+            let selectedFiles = [];
+        
+            // Function to update the displayed list of files
+            function updateFileList() {
+                // Clear previous file list and errors
+                fileList.innerHTML = '';
+                errorDiv.innerText = '';
+        
+                // Add newly selected files to the array
+                for (let file of fileInput.files) {
+                    if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                        selectedFiles.push(file);
+                    }
+                }
+        
+                // Display the selected files
+                selectedFiles.forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.style.display = 'flex';
+                    fileItem.style.alignItems = 'center';
+                    fileItem.style.marginBottom = '5px';
+        
+                    // File name and size
+                    const fileName = document.createElement('span');
+                    fileName.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                    fileName.style.flexGrow = '1';
+        
+                    // Remove button
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = 'Remove';
+                    removeButton.style.marginLeft = '10px';
+                    removeButton.style.padding = '5px 10px';
+                    removeButton.style.color = '#fff';
+                    removeButton.style.backgroundColor = '#ff4d4d';
+                    removeButton.style.border = 'none';
+                    removeButton.style.borderRadius = '4px';
+                    removeButton.style.cursor = 'pointer';
+                    removeButton.onclick = () => removeFile(index);
+        
+                    fileItem.appendChild(fileName);
+                    fileItem.appendChild(removeButton);
+                    fileList.appendChild(fileItem);
+                });
+            }
+        
+            // Function to remove a file from the list
+            function removeFile(index) {
+                // Remove the file from the array
+                selectedFiles.splice(index, 1);
+        
+                // Update the displayed list
+                updateFileInput();
+                updateFileList();
+            }
+        
+            // Function to update the file input to match selected files
+            function updateFileInput() {
+                const dataTransfer = new DataTransfer(); // Create a new FileList object
+                selectedFiles.forEach(file => dataTransfer.items.add(file));
+                fileInput.files = dataTransfer.files; // Assign the updated FileList to the input
+            }
+        
+            // Function to validate files before submission
+            function validateAttachments() {
+                const maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
+                errorDiv.innerText = ''; // Clear previous errors
+        
+                for (let file of selectedFiles) {
+                    if (file.size > maxFileSize) {
+                        errorDiv.innerText = `File "${file.name}" exceeds the 5 MB limit.`;
+                        return false; // Prevent form submission
+                    }
+                }
+        
+                return true; // Allow form submission
+            }
+        </script>
+        
+        
+        
+        
+        <h2>Sent Emails</h2>
+        {% if sent_emails %}
+        <table>
+            <thead>
+                <tr>
+                    <th>To</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Attachments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for email in sent_emails %}
+                <tr>
+                    <td>{{ email.recipient_email }}</td>
+                    <td>{{ email.subject }}</td>
+                    <td>{{ email.timestamp|date:"M d, Y H:i" }}</td>
+                    <td>
+                        {% if email.attachments.exists %}
+                        {% for attachment in email.attachments.all %}
+                        <a href="{{ attachment.file.url }}" class="attachment-link" target="_blank">{{ attachment.file.name }}</a><br>
+                        {% endfor %}
+                        {% else %}
+                        No attachments
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No emails sent yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

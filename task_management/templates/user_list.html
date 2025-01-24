@@ -61,8 +61,7 @@
         <td>{{ forloop.counter }}</td>
        
         <td>
-          <a href="{% url 'user_project' user.id %}">{{ user.username }}</a>
-</td>
+          {{ user.username }}</td>
         <td>
           <a href="mailto:{{ user.email }}">{{ user.email }}</a>
       </td>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script>
+        function addAgendaField() {
+            const agendasContainer = document.getElementById('agendas-container');
+            const agendaField = document.createElement('div');
+            agendaField.className = 'input-group mb-2';
+
+            agendaField.innerHTML = `
+                <textarea name="agenda[]" class="form-control" rows="2" placeholder="Enter agenda"></textarea>
+                <button type="button" class="btn btn-danger ms-2" onclick="removeAgendaField(this)">Del</button>
+            `;
+            agendasContainer.appendChild(agendaField);
+        }
+
+        function removeAgendaField(button) {
+            button.parentElement.remove();
+        }
+    </script>
+  </head>
+
+<body>
+<main id="main" class="main">
+
+    <div class="pagetitle">
+        <h1>Meeting Form</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active">Meeting</li>
+            </ol>
+        </nav>
+    </div>
+
+    <section class="section">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Enter Meeting Details</h5>
+                        <form method="POST" action="{% url 'meetingsave' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="topic" class="form-label">Topic</label>
+                                <input type="text" name="topic" class="form-control" value="{{ topic }}" readonly>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="organiser" class="form-label">Organiser Company Name</label>
+                                <input type="text" name="organiser" class="form-control" placeholder="Enter Organiser Name" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="partner" class="form-label">Partner Company Name</label>
+                                <input name="partner" class="form-control" placeholder="Enter Partner Name">
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="partner_logo" class="form-label">Partner Logo Link</label>
+                                <input name="partner_logo" class="form-control" placeholder="Enter Link">
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Type</label>
+                                <input type="text" name="type" class="form-control" placeholder="Enter Event Type" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="participants" class="form-label">Participants</label>
+                                <select name="participants" class="form-select" multiple required>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select name="priority" class="form-select" required>
+                                    <option value="" disabled selected>Select Priority</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                        
+                        
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" name="location" class="form-control" placeholder="Enter Location" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Event Date</label>
+                                <input type="date" name="date" class="form-control" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="starttime" class="form-label">Start Time</label>
+                                <input type="time" name="starttime" class="form-control" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="endtime" class="form-label">End Time</label>
+                                <input type="time" name="endtime" class="form-control" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="link" class="form-label">Link</label>
+                                <input name="link" class="form-control" placeholder="Enter Link" required>
+                            </div>
+                        
+                            <div class="mb-3">
+                                <label for="agenda" class="form-label">Agenda</label>
+                                <div id="agendas-container">
+                                    <div class="input-group mb-2">
+                                        <textarea name="agenda[]" class="form-control" rows="2" required></textarea>
+                                        <button type="button" class="btn btn-danger ms-2" onclick="removeAgendaField(this)">Del</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-secondary mt-2" onclick="addAgendaField()">Add Agenda</button>
+                            </div>
+                        
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+</body>

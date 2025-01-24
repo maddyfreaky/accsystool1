@@ -44,7 +44,7 @@
       <h5 class="card-title">Project Creation</h5>
       <!-- <p>For custom Bootstrap form validation messages, you’ll need to add the <code>novalidate</code> boolean attribute to your <code>&lt;form&gt;</code>. This disables the browser default feedback tooltips, but still provides access to the form validation APIs in JavaScript.</p> -->
       <!-- Custom Styled Validation -->
-      <form class="row g-3 needs-validation" method="post" action="{% url 'create_project' user.id %}" novalidate>
+      <form class="row g-3 needs-validation" method="post" action="{% url 'create_project' %}" novalidate>
         <!-- Form fields -->
          {% csrf_token %}
         <div class="col-md-6">
@@ -148,7 +148,7 @@
                     {% for project in projects %}
                     <tr>
                       <td>
-                        <a href="{% url 'task_detail' project.id user.id %}">
+                        <a href="{% url 'task_detail' project.id %}">
                             {{ project.projectname }}
                         </a>
                     </td>                    

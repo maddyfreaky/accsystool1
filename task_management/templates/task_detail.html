@@ -48,12 +48,12 @@
       <!-- Custom Styled Validation -->
 
 
-      <form class="row g-3 needs-validation" id="createtask" method="post" action="{% url 'create_task' selected_project.id user.id %}" novalidate>
+      <form class="row g-3 needs-validation" id="createtask" method="post" action="{% url 'create_task' selected_project.id %}" novalidate>
         {% csrf_token %}
-    
         <div class="col-md-6">
             <label for="taskname" class="form-label">Task name <span class="text-danger">*</span></label>
             <input type="text" class="form-control" id="taskname" name="taskname" required>
+            <div class="invalid-feedback">Task name is required.</div>
         </div>
     
         <div class="col-md-6">
@@ -71,11 +71,13 @@
         <div class="col-md-6">
             <label for="fromDate" class="form-label">From Date <span class="text-danger">*</span></label>
             <input type="date" class="form-control" id="fromDate" name="fromdate" required>
+            <div class="invalid-feedback">Please provide a start date.</div>
         </div>
     
         <div class="col-md-6">
             <label for="toDate" class="form-label">To Date <span class="text-danger">*</span></label>
             <input type="date" class="form-control" id="toDate" name="todate" required>
+            <div class="invalid-feedback">Please provide an end date.</div>
         </div>
     
         <div class="col-md-12">
@@ -86,11 +88,12 @@
     
         <div class="col-md-12" id="selected_users_field">
             <label for="selected_users" class="form-label">Select Users</label>
-            <select class="select2" id="selected_users" name="selected_users" multiple="multiple" onchange="toggleCheckbox()">
+            <select class="select2" id="selected_users" name="selected_users" multiple="multiple" required>
                 {% for user in available_users %}
                     <option value="{{ user.id }}">{{ user.username }}</option>
                 {% endfor %}
             </select>
+            <div class="invalid-feedback">Please select at least one user.</div>
         </div>
     
         <div class="col-md-12">
@@ -117,38 +120,91 @@
     </form>
     
     <script>
-      function toggleParentTaskField() {
-        
-          const checkbox = document.getElementById('is_child_checkbox');
-          const parentTaskField = document.getElementById('parent_task_field');
-          const level2UsersField = document.getElementById('selected_users_field');
-          const level2UsersSelect = document.getElementById('selected_users');
+        function toggleParentTaskField() {
+            const checkbox = document.getElementById('is_child_checkbox');
+            const parentTaskField = document.getElementById('parent_task_field');
+            if (checkbox.checked) {
+                parentTaskField.style.display = "block";
+            } else {
+                parentTaskField.style.display = "none";
+            }
+        }
     
-          if (checkbox.checked) {
-            
-              parentTaskField.style.display = "block"; // Show the parent task field
-              level2UsersField.disabled = checkbox.checked; // Hide the Level 2 Users field
-              level2UsersSelect.disabled = true; // Disable the Level 2 Users select field
-          } else {
-            
-              parentTaskField.style.display = "none"; // Hide the parent task field
-              level2UsersField.style.display = "block"; // Show the Level 2 Users field
-              level2UsersSelect.disabled = false; // Enable the Level 2 Users select field
-          }
-      }
+        function validateForm(event) {
+            let isValid = true;
     
-      function toggleCheckbox() {
-          const checkbox = document.getElementById('is_child_checkbox');
-          const level2UsersSelect = document.getElementById('selected_users');
+            // Validate task name
+            const taskName = document.getElementById('taskname');
+            if (!taskName.value.trim()) {
+                taskName.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                taskName.classList.remove('is-invalid');
+            }
     
-          if (level2UsersSelect.selectedOptions.length > 0) {
-              checkbox.disabled = true; // Disable checkbox
-          } else {
-              checkbox.disabled = false; // Enable checkbox
-          }
-      }
+            // Validate priority
+            const priority = document.getElementById('priority');
+            if (!priority.value) {
+                priority.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                priority.classList.remove('is-invalid');
+            }
+    
+            // Validate date fields
+            const fromDate = document.getElementById('fromDate');
+            const toDate = document.getElementById('toDate');
+            if (!fromDate.value) {
+                fromDate.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                fromDate.classList.remove('is-invalid');
+            }
+            if (!toDate.value) {
+                toDate.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                toDate.classList.remove('is-invalid');
+            }
+    
+            // Validate description
+            const description = document.getElementById('description');
+            if (!description.value.trim()) {
+                description.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                description.classList.remove('is-invalid');
+            }
+    
+            // Validate selected users
+            const selectedUsers = document.getElementById('selected_users');
+            if (selectedUsers.selectedOptions.length === 0) {
+                selectedUsers.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                selectedUsers.classList.remove('is-invalid');
+            }
+    
+            // Validate parent task if "Is Child" is checked
+            const isChildCheckbox = document.getElementById('is_child_checkbox');
+            const parentTask = document.getElementById('parent_task');
+            if (isChildCheckbox.checked && !parentTask.value) {
+                parentTask.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                parentTask.classList.remove('is-invalid');
+            }
+    
+            // Prevent form submission if validation fails
+            if (!isValid) {
+                event.preventDefault();
+            }
+        }
+    
+        document.getElementById('createtask').addEventListener('submit', validateForm);
     </script>
     
+        
     
     
     </div>
@@ -161,14 +217,15 @@
             <div class="card-body">
               <h5 class="card-title">{{ selected_project.projectname }}</h5>
 
-
-              <table class="table datatable" id="userTable">
+              <div class="table-responsive">
+              <table class="table datatable"  id="userTable">
                 <thead>
                     <tr>
-                        <th>Task Name</th>
+                        <th class="text-nowrap">Task Name</th>
                         <th>Priority</th>
-                        <th>From Date</th>
-                        <th>To Date</th>
+                        <th class="text-nowrap">Assigned To</th>
+                        <th class="text-nowrap">From Date</th>
+                        <th class="text-nowrap">To Date</th>
                         <th>Status</th>
                         <th>Description</th> <!-- New Column -->
                         <th>Action</th>
@@ -192,13 +249,14 @@
                                 {{ task.priority }}
                                 </span>
                             </td>
+                            <td>{{ task.user.username }}</td>
             
-                            <td>{{ task.from_date }}</td>
-                            <td>{{ task.to_date }}</td>
-                            <td>{{ task.status }}</td>
+                            <td class="text-nowrap">{{ task.from_date }}</td>
+                            <td class="text-nowrap">{{ task.to_date }}</td>
+                            <td class="text-nowrap">{{ task.status }}</td>
             
                             <!-- New Description Column -->
-                            <td>
+                            <td class="text-nowrap">
                               {{ task.description|slice:":6" }}... 
                               <a href="#" class="read-more" data-bs-toggle="modal" data-bs-target="#descriptionModal" data-description="{{ task.description }}">
                                   Read More
@@ -239,6 +297,7 @@
                     {% endif %}
                 </tbody>
             </table>
+          </div>
             
 
             </div>
@@ -591,8 +650,14 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
   $(document).ready(function () {
       $('#createtask').on('submit', function (e) {
-          e.preventDefault(); // Prevent the default form submission
- 
+          e.preventDefault(); // Prevent default form submission
+
+          // Perform client-side validation
+          if (!validateForm()) {
+              return; // Stop execution if validation fails
+          }
+
+          // If validation passes, show the processing dialog
           Swal.fire({
               title: 'Processing...',
               text: 'Please wait while your request is being processed.',
@@ -601,7 +666,8 @@ document.addEventListener('DOMContentLoaded', function () {
                   Swal.showLoading();
               }
           });
- 
+
+          // Submit the form via AJAX
           $.ajax({
               url: $(this).attr('action'),
               type: $(this).attr('method'),
@@ -612,22 +678,90 @@ document.addEventListener('DOMContentLoaded', function () {
                       title: 'Success!',
                       text: 'The task has been successfully created and emails have been sent.',
                   }).then(() => {
-                      // Redirect to the task details page
+                      // Reload the page or redirect
                       location.reload();
- 
                   });
               },
               error: function (xhr) {
+                  let errorMessage = 'Something went wrong. Please try again.';
+                  if (xhr.responseJSON && xhr.responseJSON.error) {
+                      errorMessage = xhr.responseJSON.error;
+                  }
                   Swal.fire({
                       icon: 'error',
                       title: 'Error!',
-                      text: 'Something went wrong. Please try again.',
+                      text: errorMessage,
                   });
               }
           });
       });
+
+      // Validation function
+      function validateForm() {
+          let isValid = true;
+          const taskName = $('#taskname').val().trim();
+          const priority = $('#priority').val();
+          const fromDate = $('#fromDate').val();
+          const toDate = $('#toDate').val();
+          const description = $('#description').val().trim();
+          const selectedUsers = $('#selected_users').val();
+          const isChildChecked = $('#is_child_checkbox').is(':checked');
+          const parentTask = $('#parent_task').val();
+
+          // Task Name validation
+          if (!taskName) {
+              isValid = false;
+              Swal.fire('Validation Error', 'Task name is required.', 'warning');
+              return isValid; // Stop further validation
+          }
+
+          // Priority validation
+          if (!priority) {
+              isValid = false;
+              Swal.fire('Validation Error', 'Please select a priority.', 'warning');
+              return isValid; // Stop further validation
+          }
+
+          // Date validation
+          if (!fromDate || !toDate) {
+              isValid = false;
+              Swal.fire('Validation Error', 'Please select valid dates.', 'warning');
+              return isValid; // Stop further validation
+          }
+
+          // Ensure fromDate is earlier than or equal to toDate
+          if (new Date(fromDate) > new Date(toDate)) {
+              isValid = false;
+              Swal.fire('Validation Error', 'From date cannot be later than to date.', 'warning');
+              return isValid; // Stop further validation
+          }
+
+          // Description validation
+          if (!description) {
+              isValid = false;
+              Swal.fire('Validation Error', 'Description is required.', 'warning');
+              return isValid; // Stop further validation
+          }
+
+          // Select Users validation
+          if (!selectedUsers || selectedUsers.length === 0) {
+              isValid = false;
+              Swal.fire('Validation Error', 'Please select at least one user.', 'warning');
+              return isValid; // Stop further validation
+          }
+
+          // Parent Task validation if "Is Child" is checked
+          if (isChildChecked && (!parentTask || parentTask === '')) {
+              isValid = false;
+              Swal.fire('Validation Error', 'Please select a parent task if "Is Child" is checked.', 'warning');
+              return isValid; // Stop further validation
+          }
+
+          return isValid;
+      }
   });
 </script>
+
  
  
  
